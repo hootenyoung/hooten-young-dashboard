@@ -47,18 +47,18 @@ const cards: CardConfig[] = [
   {
     key: 'marketing',
     path: '/marketing',
-    enabled: false,
+    enabled: true,
     icon: <CampaignIcon sx={{ fontSize: 32 }} />,
     title: 'Marketing',
-    subtitle: 'Brand & Audience Intelligence',
-    badge: 'Coming Soon',
+    subtitle: 'AI Marketing Engine',
+    badge: 'Live Data',
     description:
-      'Social signal, competitor patterns, content performance, and audience trends. Backend in active development — this view will light up once the marketing team ships their API.',
+      "Live competitor intelligence + AI-generated content recommendations. We pull from Instagram and Social Insider, extract winning patterns across 40 brands, and produce TTB-compliant post drafts for HY's marketing team.",
     highlights: [
-      { emoji: '📈', label: 'Social Trends', desc: 'Engagement patterns across platforms' },
-      { emoji: '🎯', label: 'Competitor Watch', desc: 'Positioning gaps and blind spots' },
-      { emoji: '🎨', label: 'Content Performance', desc: 'What is working in creative' },
-      { emoji: '🔮', label: 'Audience Signals', desc: 'Trends and behavior over time' },
+      { emoji: '📊', label: 'Pattern Engine', desc: '8 insights from 4,142 posts' },
+      { emoji: '🥃', label: 'Competitor Watch', desc: 'HY vs 20 peer brands' },
+      { emoji: '✨', label: 'AI Briefs', desc: 'Dated post recommendations' },
+      { emoji: '🛡️', label: 'Compliance', desc: 'TTB-cleared output' },
     ],
     color: '#059669',
     gradient:

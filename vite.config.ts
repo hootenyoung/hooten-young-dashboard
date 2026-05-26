@@ -17,6 +17,13 @@ export default defineConfig({
         target: 'http://localhost:8000',
         changeOrigin: true,
       },
+      // Marketing backend serves generated images/videos under /static/generated/.
+      // Proxy them so <img>/<video> can render in dev. In prod the UI uses
+      // VITE_MARKETING_API_URL to address them directly.
+      '/static/generated': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+      },
     },
   },
   build: {
