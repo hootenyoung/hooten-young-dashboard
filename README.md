@@ -1,12 +1,10 @@
 # Hooten Young Dashboard
 
-Internal weekly sales-review dashboard for **Hooten Young** — a premium American spirits brand (whiskey + cigars). Every Friday, HY uploads a sales report (Excel/xlsx); the dashboard parses it, surfaces trends and breakdowns, and (eventually) cross-references the numbers against social/competitor intelligence from `hooten-young-analytics`. One of three repos in the HY AI marketing engine; the others are `hooten-young-ui` (public website) and `hooten-young-analytics` (social + competitor intelligence).
+Single React SPA for the Hooten Young platform — consumes the `hooten-young-sales` and `hooten-young-marketing` backends.
 
 ## Stack
 
-React 19 (CRA) · React Router 7 · MUI 9 + Emotion · Framer Motion 12 · Recharts 3 · SheetJS (xlsx) · GCP
-
-> **Note:** Create React App is deprecated upstream; we use it deliberately for now. Vite/Next migration is a known future task — see `CLAUDE.md`.
+React 18 · Vite 5 + TypeScript · MUI 6 + Emotion · Recharts · React Router 6 · TanStack Query 5 · ESLint + Prettier
 
 ## Quick start
 
@@ -14,33 +12,41 @@ React 19 (CRA) · React Router 7 · MUI 9 + Emotion · Framer Motion 12 · Recha
 # 1. Install deps
 npm install
 
-# 2. Copy env template and fill in values
+# 2. (Optional) Copy env template; defaults work for local dev
 cp .env.example .env.local
 
-# 3. Run dev server
-npm start
+# 3. Make sure the sales backend is running locally
+#    (in the hooten-young-sales repo: uv run uvicorn hy_sales.main:app --reload --port 8000)
+
+# 4. Start the dev server
+npm run dev
 ```
 
-Opens at http://localhost:3000.
+Opens at http://localhost:5173. Requests to `/api/*` are proxied to `http://localhost:8000` automatically (see `vite.config.ts`).
 
-## Pre-commit
+## Scripts
 
-```bash
-npm run lint && npm test -- --watchAll=false && npm run build
-```
-
-The `pre-commit` skill in `.claude/skills/pre-commit/` automates this.
+| Command              | What it does                                              |
+|----------------------|-----------------------------------------------------------|
+| `npm run dev`        | Vite dev server with HMR on :5173                         |
+| `npm run build`      | Type-check (`tsc -b`) then produce a production bundle    |
+| `npm run preview`    | Serve the built bundle for a smoke test                   |
+| `npm run lint`       | ESLint                                                    |
+| `npm run typecheck`  | TypeScript strict check (no emit)                         |
+| `npm run format`     | Prettier format in place                                  |
+| `npm run format:check` | Prettier check (CI)                                     |
 
 ## Repo guide
 
-- [`CLAUDE.md`](./CLAUDE.md) — project context, conventions, open backend question. **Read this first.**
-- [`docs/architecture.md`](./docs/architecture.md) — current architecture (maintained by the `architecture-updater` subagent; refresh with `/sync-architecture`).
-- [`docs/onboarding.md`](./docs/onboarding.md) — new-developer setup guide.
-- [`.claude/`](./.claude/) — Claude Code config (hooks, agents, skills, slash commands).
-- [`.mcp.json`](./.mcp.json) — MCP server wiring (GitHub, Postgres, Playwright, Filesystem).
-- [`scripts/`](./scripts/) — automation scripts (setup, deploy, data).
-- [`src/`](./src/) — application source.
+- [`CLAUDE.md`](./CLAUDE.md) — project context + conventions. **Read this first.**
+- [`src/api/`](./src/api/) — typed API clients (one module per backend domain).
+- [`src/components/`](./src/components/) — UI components.
+- [`src/theme.ts`](./src/theme.ts) — MUI theme (HY brand: dark + warm amber).
+- [`vite.config.ts`](./vite.config.ts) — dev server + proxy config.
+- [`.claude/`](./.claude/) — Claude Code config (agents, commands, skills).
 
-## Security
+## Production env vars
 
-Internal use only. Sales data is sensitive — no exports to third-party tools without approval. CRA exposes any `REACT_APP_*` env var to the browser bundle; never put secrets there. See [`CLAUDE.md`](./CLAUDE.md#security--compliance).
+In dev, the Vite proxy handles backend routing. In prod (Cloud Run), set:
+
+- `VITE_API_BASE_URL` — the deployed sales backend URL (e.g. `https://hy-sales-api-prod-...run.app`).

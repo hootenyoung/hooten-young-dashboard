@@ -1,0 +1,158 @@
+name: Pipeline
+
+# One workflow for the dashboard's whole lifecycle.
+#
+# Triggers:
+#   - Pull request to main:  run quality-gates only.
+#   - Push to main:          quality-gates -> deploy-dev.
+#   - Push tag v*.*.*:       quality-gates -> deploy-prod (gated).
+#   - workflow_dispatch:     manual override; pick dev or prod.
+#
+# Note: unlike the backend (which builds one image and promotes it),
+# the dashboard image is environment-specific — Vite bakes
+# VITE_API_BASE_URL into the bundle at build time. So each deploy job
+# does its own build with the right URL.
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+    tags: ["v*.*.*"]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Which environment to deploy to"
+        required: true
+        type: choice
+        options: [dev, prod]
+        default: dev
+
+env:
+  GCP_REGION: us-central1
+  ARTIFACT_REPO: hooten-young
+
+jobs:
+  quality-gates:
+    name: Quality gates (typecheck · lint · build)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm run typecheck
+
+      - run: npm run lint
+
+      - name: Smoke build
+        run: npm run build
+        env:
+          VITE_API_BASE_URL: ""
+
+  deploy-dev:
+    name: Build & Deploy to dev
+    needs: quality-gates
+    if: |
+      github.ref == 'refs/heads/main' ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'dev')
+    environment: dev
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Authenticate to GCP via Workload Identity Federation
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT_EMAIL }}
+
+      - name: Setup gcloud
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker for Artifact Registry
+        run: gcloud auth configure-docker ${{ env.GCP_REGION }}-docker.pkg.dev --quiet
+
+      - name: Build and push image (dev)
+        run: |
+          IMAGE="${{ env.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/hy-dashboard-dev:${{ github.sha }}"
+          docker build \
+            --build-arg VITE_SALES_API_URL="${{ vars.VITE_SALES_API_URL }}" \
+            --build-arg VITE_MARKETING_API_URL="${{ vars.VITE_MARKETING_API_URL }}" \
+            -t "$IMAGE" .
+          docker push "$IMAGE"
+          echo "Pushed $IMAGE"
+
+      - name: Deploy to Cloud Run (dev)
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: hy-dashboard-dev
+          image: ${{ env.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/hy-dashboard-dev:${{ github.sha }}
+          region: ${{ env.GCP_REGION }}
+          flags: |
+            --allow-unauthenticated
+            --service-account=${{ secrets.GCP_SERVICE_ACCOUNT_EMAIL }}
+            --port=8080
+            --min-instances=0
+            --max-instances=4
+            --memory=256Mi
+            --cpu=1
+
+  deploy-prod:
+    name: Build & Deploy to prod
+    needs: quality-gates
+    if: |
+      startsWith(github.ref, 'refs/tags/v') ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'prod')
+    environment: prod
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Authenticate to GCP via Workload Identity Federation
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT_EMAIL }}
+
+      - name: Setup gcloud
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker for Artifact Registry
+        run: gcloud auth configure-docker ${{ env.GCP_REGION }}-docker.pkg.dev --quiet
+
+      - name: Build and push image (prod)
+        run: |
+          IMAGE="${{ env.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/hy-dashboard-prod:${{ github.sha }}"
+          docker build \
+            --build-arg VITE_SALES_API_URL="${{ vars.VITE_SALES_API_URL }}" \
+            --build-arg VITE_MARKETING_API_URL="${{ vars.VITE_MARKETING_API_URL }}" \
+            -t "$IMAGE" .
+          docker push "$IMAGE"
+          echo "Pushed $IMAGE"
+
+      - name: Deploy to Cloud Run (prod)
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: hy-dashboard-prod
+          image: ${{ env.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/hy-dashboard-prod:${{ github.sha }}
+          region: ${{ env.GCP_REGION }}
+          flags: |
+            --allow-unauthenticated
+            --service-account=${{ secrets.GCP_SERVICE_ACCOUNT_EMAIL }}
+            --port=8080
+            --min-instances=0
+            --max-instances=10
+            --memory=256Mi
+            --cpu=1
