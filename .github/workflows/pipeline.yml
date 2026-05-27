@@ -18,11 +18,11 @@ on:
     branches: [main]
   push:
     branches: [main]
-    tags: ["v*.*.*"]
+    tags: ['v*.*.*']
   workflow_dispatch:
     inputs:
       environment:
-        description: "Which environment to deploy to"
+        description: 'Which environment to deploy to'
         required: true
         type: choice
         options: [dev, prod]
@@ -41,7 +41,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: '20'
           cache: npm
 
       - run: npm ci
@@ -53,7 +53,7 @@ jobs:
       - name: Smoke build
         run: npm run build
         env:
-          VITE_API_BASE_URL: ""
+          VITE_API_BASE_URL: ''
 
   deploy-dev:
     name: Build & Deploy to dev

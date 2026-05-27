@@ -6,7 +6,12 @@ import { Header } from '../components/Header';
 import { colors } from '../theme';
 
 const TABS = [
-  { value: 'distribution', label: 'Distribution', icon: ShowChartIcon, path: '/sales/distribution' },
+  {
+    value: 'distribution',
+    label: 'Distribution',
+    icon: ShowChartIcon,
+    path: '/sales/distribution',
+  },
   { value: 'depletions', label: 'Depletions', icon: LocalShippingIcon, path: '/sales/depletions' },
 ] as const;
 

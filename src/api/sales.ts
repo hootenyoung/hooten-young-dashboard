@@ -194,9 +194,7 @@ export interface WhiteSpaceMatrixResponse {
   gap_pct: number;
 }
 
-export function useWhiteSpaceMatrix(
-  range?: DateRange,
-): UseQueryResult<WhiteSpaceMatrixResponse> {
+export function useWhiteSpaceMatrix(range?: DateRange): UseQueryResult<WhiteSpaceMatrixResponse> {
   return useQuery({
     queryKey: ['sales', 'white-space', range ?? {}],
     queryFn: () =>

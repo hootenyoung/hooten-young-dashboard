@@ -58,7 +58,9 @@ export function RankedBarList({
           bgcolor: `${colors.error}05`,
         }}
       >
-        <Typography color="error">Failed to load {title.toLowerCase()}: {error.message}</Typography>
+        <Typography color="error">
+          Failed to load {title.toLowerCase()}: {error.message}
+        </Typography>
       </Paper>
     );
   }
@@ -110,10 +112,7 @@ export function RankedBarList({
                   }}
                 >
                   {s.value}{' '}
-                  <Box
-                    component="span"
-                    sx={{ color: colors.textMuted, fontWeight: 500 }}
-                  >
+                  <Box component="span" sx={{ color: colors.textMuted, fontWeight: 500 }}>
                     {s.label}
                   </Box>
                 </Typography>

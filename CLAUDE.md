@@ -55,10 +55,10 @@ The dashboard is **a thin consumer of typed REST endpoints** — no business log
 
 Cloud Run, one service per environment, in GCP project `hooten-young-platform`:
 
-| Environment | Service              | Deploy trigger                    |
-|-------------|----------------------|-----------------------------------|
-| `dev`       | `hy-dashboard-dev`   | push to `main` (auto)             |
-| `prod`      | `hy-dashboard-prod`  | tag `v*.*.*` + reviewer approval  |
+| Environment | Service             | Deploy trigger                   |
+| ----------- | ------------------- | -------------------------------- |
+| `dev`       | `hy-dashboard-dev`  | push to `main` (auto)            |
+| `prod`      | `hy-dashboard-prod` | tag `v*.*.*` + reviewer approval |
 
 GitHub Actions workflow in `.github/workflows/deploy.yml` (added later in the pipeline phase).
 

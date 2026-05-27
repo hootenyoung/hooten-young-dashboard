@@ -29,7 +29,7 @@ export function DistributorBreakdown({ range }: DistributorBreakdownProps) {
   const unknown = (data?.distributors ?? []).find((d) => d.distributor_name === null);
 
   const items: RankedBarItem[] = known.map((d) => {
-    const channelLabel = d.channel ? CHANNEL_LABEL[d.channel] ?? d.channel : 'Distributor';
+    const channelLabel = d.channel ? (CHANNEL_LABEL[d.channel] ?? d.channel) : 'Distributor';
     return {
       id: d.distributor_id ?? d.distributor_name ?? 'unknown',
       label: d.distributor_name ?? 'Unknown',

@@ -49,16 +49,11 @@ export function WhiteSpaceMatrix({ range }: WhiteSpaceMatrixProps) {
   // Maximum revenue across the matrix — drives the heatmap intensity.
   const maxRevenue = Math.max(
     1,
-    ...products.flatMap((p) =>
-      states.map((s) => cellMap.get(`${p.id}|${s.code}`)?.revenue ?? 0),
-    ),
+    ...products.flatMap((p) => states.map((s) => cellMap.get(`${p.id}|${s.code}`)?.revenue ?? 0)),
   );
 
   return (
-    <Paper
-      elevation={0}
-      sx={{ p: 3, border: `1px solid ${colors.border}`, borderRadius: 2 }}
-    >
+    <Paper elevation={0} sx={{ p: 3, border: `1px solid ${colors.border}`, borderRadius: 2 }}>
       <Box
         sx={{
           display: 'flex',

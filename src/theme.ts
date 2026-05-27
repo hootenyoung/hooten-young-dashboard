@@ -9,10 +9,13 @@ import { createTheme } from '@mui/material/styles';
  * (#4f46e5) as the chart accent.
  */
 export const colors = {
-  // Brand
-  gold: '#d4a84b',
+  // Brand — sourced from hootenyoung.com (gold #c39748 is the canonical
+  // HY brand color; cream + near-black are the surface palette they use).
+  gold: '#c39748',
   goldLight: '#f4bc58',
-  goldDark: '#b08930',
+  goldDark: '#bb8c3f',
+  brandCream: '#f9f4ec',
+  brandDark: '#2d2d2c',
 
   // Surfaces
   pageBg: '#f8f9fb',

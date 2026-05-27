@@ -20,10 +20,7 @@ import { motion } from 'framer-motion';
 import { useState } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
 import { Header } from '../components/Header';
-import {
-  type CompetitorCategory,
-  useCompetitorWatch,
-} from '../api/marketing';
+import { type CompetitorCategory, useCompetitorWatch } from '../api/marketing';
 import { colors } from '../theme';
 
 const MotionBox = motion.create(Box);
@@ -105,8 +102,8 @@ export function MarketingCompetitorsPage() {
             HY vs The Field
           </Typography>
           <Typography sx={{ fontSize: 14, color: colors.textMuted, mb: 3, maxWidth: 720 }}>
-            Where HY sits against its peer set in each category. Brands ranked by
-            average engagement per post; HY row highlighted.
+            Where HY sits against its peer set in each category. Brands ranked by average engagement
+            per post; HY row highlighted.
           </Typography>
         </MotionBox>
 
@@ -200,10 +197,18 @@ export function MarketingCompetitorsPage() {
                     <TableRow>
                       <TableCell sx={th}>Brand</TableCell>
                       <TableCell sx={th}>Category</TableCell>
-                      <TableCell align="right" sx={th}>Followers</TableCell>
-                      <TableCell align="right" sx={th}>Posts</TableCell>
-                      <TableCell align="right" sx={th}>Eng / post</TableCell>
-                      <TableCell align="right" sx={th}>Follower growth</TableCell>
+                      <TableCell align="right" sx={th}>
+                        Followers
+                      </TableCell>
+                      <TableCell align="right" sx={th}>
+                        Posts
+                      </TableCell>
+                      <TableCell align="right" sx={th}>
+                        Eng / post
+                      </TableCell>
+                      <TableCell align="right" sx={th}>
+                        Follower growth
+                      </TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
@@ -264,9 +269,7 @@ export function MarketingCompetitorsPage() {
                           sx={{
                             fontSize: 12.5,
                             color:
-                              (r.followers_growth_pct ?? 0) > 0
-                                ? colors.success
-                                : colors.textMuted,
+                              (r.followers_growth_pct ?? 0) > 0 ? colors.success : colors.textMuted,
                           }}
                         >
                           {pct(r.followers_growth_pct)}
@@ -292,15 +295,7 @@ const th = {
   color: colors.textMuted,
 };
 
-function SummaryStat({
-  label,
-  value,
-  accent,
-}: {
-  label: string;
-  value: string;
-  accent: string;
-}) {
+function SummaryStat({ label, value, accent }: { label: string; value: string; accent: string }) {
   return (
     <Box>
       <Typography

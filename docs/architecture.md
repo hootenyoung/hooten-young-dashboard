@@ -65,6 +65,7 @@ When pages are added, document each:
 - Charts / panels composed inside
 
 Likely Day 1 pages:
+
 - `/` — landing / "drop your Friday report here"
 - `/review` — the parsed-report dashboard
 - `/skus/:sku` — single-SKU drilldown

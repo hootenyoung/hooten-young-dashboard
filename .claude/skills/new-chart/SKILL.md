@@ -35,8 +35,8 @@ Create a new chart component in `src/components/charts/`, consulting the `chart-
 ## Template
 
 ```jsx
-import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend } from "recharts";
-import { useTheme } from "@mui/material/styles";
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend } from 'recharts';
+import { useTheme } from '@mui/material/styles';
 
 /**
  * <ChartName> — <one-line description of the question this answers>.

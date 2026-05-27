@@ -1,10 +1,4 @@
-import {
-  Box,
-  Chip,
-  CircularProgress,
-  Paper,
-  Typography,
-} from '@mui/material';
+import { Box, Chip, CircularProgress, Paper, Typography } from '@mui/material';
 import { useState } from 'react';
 import { useFollowUpTracker, type FollowUpBucket } from '../api/depletions';
 import { colors } from '../theme';
@@ -42,7 +36,10 @@ export function FollowUpTracker() {
   if (isLoading || !data) {
     return (
       <Paper elevation={0} sx={{ p: 3, border: `1px solid ${colors.border}`, borderRadius: 2 }}>
-        <Typography variant="h6" sx={{ fontFamily: '"Playfair Display", Georgia, serif', fontWeight: 600, mb: 2 }}>
+        <Typography
+          variant="h6"
+          sx={{ fontFamily: '"Playfair Display", Georgia, serif', fontWeight: 600, mb: 2 }}
+        >
           Follow-Up Tracker
         </Typography>
         <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
@@ -66,7 +63,8 @@ export function FollowUpTracker() {
           Follow-Up Tracker
         </Typography>
         <Typography variant="caption" color="text.secondary">
-          Accounts grouped by days since their last recorded depletion ({formatDate(data.reference_date)} reference).
+          Accounts grouped by days since their last recorded depletion (
+          {formatDate(data.reference_date)} reference).
         </Typography>
       </Box>
 
@@ -130,7 +128,16 @@ export function FollowUpTracker() {
       {/* Account list for the active bucket */}
       {currentBucket && (
         <Box>
-          <Typography sx={{ fontSize: 12, fontWeight: 700, color: colors.textMuted, mb: 1, letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+          <Typography
+            sx={{
+              fontSize: 12,
+              fontWeight: 700,
+              color: colors.textMuted,
+              mb: 1,
+              letterSpacing: '0.06em',
+              textTransform: 'uppercase',
+            }}
+          >
             {currentBucket.label} · {currentBucket.count} account
             {currentBucket.count !== 1 ? 's' : ''}
           </Typography>
@@ -139,7 +146,15 @@ export function FollowUpTracker() {
               No accounts in this bucket.
             </Typography>
           ) : (
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75, maxHeight: 360, overflowY: 'auto' }}>
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 0.75,
+                maxHeight: 360,
+                overflowY: 'auto',
+              }}
+            >
               {currentBucket.accounts.slice(0, 50).map((acc) => (
                 <Box
                   key={acc.account_id}

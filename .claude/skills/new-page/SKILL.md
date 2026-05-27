@@ -36,7 +36,7 @@ Create a new page component and wire it into React Router 7.
 ## Template
 
 ```jsx
-import { Box, Typography } from "@mui/material";
+import { Box, Typography } from '@mui/material';
 
 /**
  * <PageName> — <one-line description of what this page does>.
@@ -46,7 +46,7 @@ import { Box, Typography } from "@mui/material";
 export function PageName() {
   return (
     <Box>
-      <Typography variant="h4" sx={{ fontFamily: "Playfair Display, serif", mb: 3 }}>
+      <Typography variant="h4" sx={{ fontFamily: 'Playfair Display, serif', mb: 3 }}>
         Page Title
       </Typography>
       {/* content */}

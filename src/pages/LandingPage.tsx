@@ -1,6 +1,5 @@
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import CampaignIcon from '@mui/icons-material/Campaign';
-import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import ShowChartIcon from '@mui/icons-material/ShowChart';
 import { Box, Container, Typography } from '@mui/material';
 import { motion } from 'framer-motion';
@@ -12,221 +11,233 @@ const MotionBox = motion.create(Box);
 interface CardConfig {
   key: 'sales' | 'marketing';
   path: string;
-  enabled: boolean;
   icon: JSX.Element;
   title: string;
   subtitle: string;
-  badge: string;
-  description: string;
-  highlights: Array<{ emoji: string; label: string; desc: string }>;
-  color: string;
-  gradient: string;
+  caption: string;
 }
 
 const cards: CardConfig[] = [
   {
     key: 'sales',
     path: '/sales',
-    enabled: true,
     icon: <ShowChartIcon sx={{ fontSize: 32 }} />,
     title: 'Sales',
     subtitle: 'Distribution & Depletions',
-    badge: 'Live Data',
-    description:
-      'Track invoiced revenue, retail pull-through, product mix, and geographic reach across the full distribution chain — from QuickBooks invoices to retail account depletions.',
-    highlights: [
-      { emoji: '📊', label: 'Revenue & KPIs', desc: 'Revenue, cases, commission, trends' },
-      { emoji: '🥃', label: 'Product & Geography', desc: 'Performance by SKU, state, distributor' },
-      { emoji: '🔲', label: 'White Space', desc: 'Gap analysis and ordering patterns' },
-      { emoji: '🏆', label: 'Account Intelligence', desc: 'Top buyers, velocity, follow-up tracker' },
-    ],
-    color: '#4f46e5',
-    gradient:
-      'linear-gradient(160deg, rgba(99,91,255,0.05) 0%, rgba(59,130,246,0.02) 50%, transparent 100%)',
+    caption: 'Revenue, product mix, and retail pull-through across the chain.',
   },
   {
     key: 'marketing',
     path: '/marketing',
-    enabled: true,
     icon: <CampaignIcon sx={{ fontSize: 32 }} />,
     title: 'Marketing',
-    subtitle: 'AI Marketing Engine',
-    badge: 'Live Data',
-    description:
-      "Live competitor intelligence + AI-generated content recommendations. We pull from Instagram and Social Insider, extract winning patterns across 40 brands, and produce TTB-compliant post drafts for HY's marketing team.",
-    highlights: [
-      { emoji: '📊', label: 'Pattern Engine', desc: '8 insights from 4,142 posts' },
-      { emoji: '🥃', label: 'Competitor Watch', desc: 'HY vs 20 peer brands' },
-      { emoji: '✨', label: 'AI Briefs', desc: 'Dated post recommendations' },
-      { emoji: '🛡️', label: 'Compliance', desc: 'TTB-cleared output' },
-    ],
-    color: '#059669',
-    gradient:
-      'linear-gradient(160deg, rgba(16,185,129,0.05) 0%, rgba(6,182,212,0.02) 50%, transparent 100%)',
+    subtitle: 'Intelligence & Insights',
+    caption: 'Competitor watch, social patterns, and content recommendations.',
   },
 ];
 
+/** Art-deco style corner bracket — gold L-shape ornament. */
+function CornerBracket({ position }: { position: 'tl' | 'tr' | 'bl' | 'br' }) {
+  const top = position.startsWith('t');
+  const left = position.endsWith('l');
+  const size = { xs: 24, md: 32, xl: 40 };
+  const inset = { xs: 24, md: 36, xl: 48 };
+
+  return (
+    <Box
+      sx={{
+        position: 'absolute',
+        ...(top ? { top: inset } : { bottom: inset }),
+        ...(left ? { left: inset } : { right: inset }),
+        width: size,
+        height: size,
+        pointerEvents: 'none',
+        zIndex: 1,
+        '&::before, &::after': {
+          content: '""',
+          position: 'absolute',
+          bgcolor: colors.gold,
+          opacity: 0.55,
+        },
+        '&::before': {
+          ...(top ? { top: 0 } : { bottom: 0 }),
+          ...(left ? { left: 0 } : { right: 0 }),
+          width: '100%',
+          height: '1px',
+        },
+        '&::after': {
+          ...(top ? { top: 0 } : { bottom: 0 }),
+          ...(left ? { left: 0 } : { right: 0 }),
+          height: '100%',
+          width: '1px',
+        },
+      }}
+    />
+  );
+}
+
 export function LandingPage() {
   const navigate = useNavigate();
+  const year = new Date().getFullYear();
 
   return (
     <Box
       sx={{
         minHeight: '100vh',
-        background:
-          'linear-gradient(180deg, #fdfcfa 0%, #f7f5f0 40%, #faf8f5 100%)',
+        bgcolor: colors.brandCream,
         position: 'relative',
         overflow: 'hidden',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        py: { xs: 6, md: 7, xl: 8 },
       }}
     >
-      {/* Soft warm radial accents */}
+      {/* Ambient warm wash centered on the focal point */}
       <Box
         sx={{
           position: 'absolute',
-          top: '5%',
-          left: '10%',
-          width: { xs: 250, md: 500 },
-          height: { xs: 250, md: 500 },
-          borderRadius: '50%',
+          inset: 0,
           background:
-            'radial-gradient(circle, rgba(194,154,69,0.06) 0%, transparent 70%)',
+            'radial-gradient(ellipse at 50% 50%, rgba(195,151,72,0.08) 0%, transparent 65%)',
           pointerEvents: 'none',
+        }}
+      />
+
+      {/* Right-side brand hero image — fades from right edge into the cream */}
+      <MotionBox
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 1.4, ease: 'easeOut' }}
+        sx={{
+          position: 'absolute',
+          top: 0,
+          right: 0,
+          bottom: 0,
+          width: { xs: 0, md: '40%', lg: '45%', xl: '48%' },
+          backgroundImage: 'url(/brand/hero.jpg)',
+          backgroundRepeat: 'no-repeat',
+          backgroundPosition: 'center right',
+          backgroundSize: 'cover',
+          opacity: 0.38,
+          maskImage:
+            'linear-gradient(to right, transparent 0%, rgba(0,0,0,0.4) 35%, rgba(0,0,0,0.9) 75%, black 100%)',
+          WebkitMaskImage:
+            'linear-gradient(to right, transparent 0%, rgba(0,0,0,0.4) 35%, rgba(0,0,0,0.9) 75%, black 100%)',
+          pointerEvents: 'none',
+          filter: 'saturate(0.6) sepia(0.12)',
+        }}
+      />
+
+      {/* Soft gold breathing wash on top of the hero */}
+      <MotionBox
+        animate={{ opacity: [0.5, 0.75, 0.5] }}
+        transition={{ duration: 9, repeat: Infinity, ease: 'easeInOut' }}
+        sx={{
+          position: 'absolute',
+          top: 0,
+          right: 0,
+          bottom: 0,
+          width: { xs: 0, md: '58%' },
+          backgroundImage:
+            'radial-gradient(ellipse 60% 55% at 78% 50%, rgba(195,151,72,0.14) 0%, transparent 65%)',
+          pointerEvents: 'none',
+        }}
+      />
+
+      {/* Top + bottom edge gold strips */}
+      <Box
+        sx={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          height: '2px',
+          background: `linear-gradient(90deg, transparent, ${colors.gold}, transparent)`,
         }}
       />
       <Box
         sx={{
           position: 'absolute',
-          bottom: '10%',
-          right: '5%',
-          width: { xs: 200, md: 400 },
-          height: { xs: 200, md: 400 },
-          borderRadius: '50%',
-          background:
-            'radial-gradient(circle, rgba(99,91,255,0.04) 0%, transparent 70%)',
-          pointerEvents: 'none',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          height: '2px',
+          background: `linear-gradient(90deg, transparent, ${colors.gold}, transparent)`,
         }}
       />
+
+      {/* Corner brackets — gold L-shape ornaments */}
+      <CornerBracket position="tl" />
+      <CornerBracket position="tr" />
+      <CornerBracket position="bl" />
+      <CornerBracket position="br" />
 
       <Container
-        maxWidth="lg"
+        maxWidth={false}
         sx={{
-          pt: { xs: 5, md: 8 },
-          pb: 8,
-          px: { xs: 2, sm: 3, md: 4 },
           position: 'relative',
-          zIndex: 1,
+          zIndex: 2,
+          maxWidth: { xs: 720, md: 1100, xl: 1440 },
+          px: { xs: 3, sm: 4, md: 6 },
         }}
       >
-        {/* Hero */}
+        {/* Hero — logo + eyebrow + bridge */}
         <MotionBox
-          initial={{ opacity: 0, y: 24 }}
+          initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: 'easeOut' }}
-          sx={{ textAlign: 'center', mb: { xs: 4, md: 6 } }}
+          sx={{ textAlign: 'center', mb: { xs: 5, md: 7, xl: 9 } }}
         >
-          <Typography
+          <Box
+            component="img"
+            src="/brand/hy-logo.png"
+            alt="Hooten Young"
             sx={{
-              fontSize: 11,
-              fontWeight: 700,
-              color: colors.gold,
-              textTransform: 'uppercase',
-              letterSpacing: '0.2em',
-              mb: 2,
+              height: { xs: 110, md: 150, xl: 190 },
+              width: 'auto',
+              mb: { xs: 3, xl: 4 },
+              display: 'block',
+              mx: 'auto',
             }}
-          >
-            Hooten Young American Whiskey
-          </Typography>
+          />
 
-          <Typography
-            sx={{
-              fontFamily: '"Playfair Display", Georgia, serif',
-              fontSize: { xs: 32, sm: 40, md: 52 },
-              fontWeight: 700,
-              color: colors.textPrimary,
-              lineHeight: 1.1,
-              mb: 2,
-              letterSpacing: '-0.02em',
-            }}
-          >
-            Hooten Young Platform
-          </Typography>
-
-          {/* Decorative divider */}
           <Box
             sx={{
               display: 'flex',
-              justifyContent: 'center',
               alignItems: 'center',
-              gap: 2,
-              mb: 2.5,
-            }}
-          >
-            <Box sx={{ width: 40, height: 1, bgcolor: colors.gold, opacity: 0.4 }} />
-            <Box
-              sx={{
-                width: 6,
-                height: 6,
-                borderRadius: '50%',
-                bgcolor: colors.gold,
-                opacity: 0.5,
-              }}
-            />
-            <Box sx={{ width: 40, height: 1, bgcolor: colors.gold, opacity: 0.4 }} />
-          </Box>
-
-          <Typography
-            sx={{
-              fontSize: { xs: 13, md: 15 },
-              color: colors.textMuted,
-              textAlign: 'center',
-              letterSpacing: '0.01em',
-            }}
-          >
-            Sales & marketing intelligence in one place
-          </Typography>
-        </MotionBox>
-
-        {/* Explore divider */}
-        <MotionBox
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.4, delay: 0.3 }}
-          sx={{ textAlign: 'center', mb: 3.5 }}
-        >
-          <Box
-            sx={{
-              display: 'flex',
               justifyContent: 'center',
-              alignItems: 'center',
-              gap: 2,
-              mb: 1.5,
+              gap: { xs: 2.5, xl: 3 },
+              maxWidth: { xs: 360, xl: 460 },
+              mx: 'auto',
             }}
           >
             <Box
               sx={{
                 flex: 1,
-                maxWidth: 120,
-                height: 1,
-                background: `linear-gradient(90deg, transparent, ${colors.border})`,
+                height: '1px',
+                background: `linear-gradient(90deg, transparent, ${colors.gold})`,
               }}
             />
             <Typography
               sx={{
-                fontSize: 10,
-                fontWeight: 600,
-                color: colors.textMuted,
+                fontFamily: '"Avenir", "Inter", sans-serif',
+                fontSize: { xs: 10, xl: 11.5 },
+                fontWeight: 700,
+                color: colors.gold,
                 textTransform: 'uppercase',
-                letterSpacing: '0.18em',
+                letterSpacing: '0.36em',
+                whiteSpace: 'nowrap',
               }}
             >
-              Explore
+              Internal Platform
             </Typography>
             <Box
               sx={{
                 flex: 1,
-                maxWidth: 120,
-                height: 1,
-                background: `linear-gradient(90deg, ${colors.border}, transparent)`,
+                height: '1px',
+                background: `linear-gradient(90deg, ${colors.gold}, transparent)`,
               }}
             />
           </Box>
@@ -237,243 +248,198 @@ export function LandingPage() {
           sx={{
             display: 'grid',
             gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' },
-            gap: { xs: 3, md: 4 },
+            gap: { xs: 3, md: 4, xl: 6 },
+            maxWidth: { xs: 480, md: 'none' },
+            mx: 'auto',
           }}
         >
           {cards.map((card, i) => (
             <MotionBox
               key={card.key}
-              initial={{ opacity: 0, y: 30 }}
+              initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.35 + i * 0.12 }}
+              transition={{ duration: 0.55, delay: 0.3 + i * 0.12, ease: 'easeOut' }}
             >
               <Box
-                onClick={() => card.enabled && navigate(card.path)}
+                onClick={() => navigate(card.path)}
                 sx={{
                   position: 'relative',
-                  borderRadius: '20px',
-                  border: `1px solid ${card.color}18`,
-                  bgcolor: 'rgba(255,255,255,0.97)',
+                  backgroundColor: 'rgba(253, 251, 245, 0.62)',
+                  backdropFilter: 'blur(14px) saturate(1.1)',
+                  WebkitBackdropFilter: 'blur(14px) saturate(1.1)',
+                  border: '1px solid rgba(255, 255, 255, 0.6)',
+                  borderRadius: '2px',
+                  cursor: 'pointer',
+                  px: { xs: 4, md: 5, xl: 7 },
+                  pt: { xs: 5, md: 6, xl: 8 },
+                  pb: { xs: 4, md: 5, xl: 7 },
+                  minHeight: { xs: 320, md: 380, xl: 480 },
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  textAlign: 'center',
+                  transition: 'all 0.45s cubic-bezier(0.4, 0, 0.2, 1)',
                   overflow: 'hidden',
-                  cursor: card.enabled ? 'pointer' : 'not-allowed',
-                  opacity: card.enabled ? 1 : 0.78,
-                  transition: 'all 0.3s cubic-bezier(0.4,0,0.2,1)',
-                  '&:hover': card.enabled
-                    ? {
-                        borderColor: `${card.color}45`,
-                        boxShadow: `0 20px 60px ${card.color}14, 0 4px 16px rgba(0,0,0,0.04)`,
-                        transform: 'translateY(-6px)',
-                        '& .arrow-icon': { transform: 'translateX(6px)' },
-                        '& .card-glow': { opacity: 1 },
-                      }
-                    : {},
-                }}
-              >
-                {/* Top color accent bar */}
-                <Box
-                  sx={{
+                  boxShadow: '0 1px 3px rgba(45, 45, 44, 0.02), 0 12px 32px rgba(45, 45, 44, 0.06)',
+                  '&::before': {
+                    content: '""',
                     position: 'absolute',
                     top: 0,
                     left: 0,
                     right: 0,
-                    height: 4,
-                    background: `linear-gradient(90deg, ${card.color} 0%, ${card.color}60 100%)`,
-                  }}
-                />
-
-                {/* Background gradient */}
-                <Box
-                  sx={{
-                    position: 'absolute',
-                    inset: 0,
-                    background: card.gradient,
-                    pointerEvents: 'none',
-                  }}
-                />
-
-                {/* Corner glow on hover */}
-                <Box
-                  className="card-glow"
-                  sx={{
-                    position: 'absolute',
-                    top: -30,
-                    right: -30,
-                    width: 160,
-                    height: 160,
-                    borderRadius: '50%',
-                    background: `radial-gradient(circle, ${card.color}12 0%, transparent 70%)`,
-                    pointerEvents: 'none',
-                    opacity: 0,
-                    transition: 'opacity 0.3s',
-                  }}
-                />
-
-                <Box sx={{ position: 'relative', p: { xs: 3, md: 4 } }}>
-                  {/* Icon + badge row */}
+                    height: '2px',
+                    backgroundColor: colors.gold,
+                    opacity: 0.85,
+                    transition: 'height 0.4s ease, opacity 0.4s ease',
+                  },
+                  '&:hover': {
+                    backgroundColor: 'rgba(253, 251, 245, 0.75)',
+                    borderColor: `${colors.gold}66`,
+                    boxShadow:
+                      '0 4px 12px rgba(45, 45, 44, 0.06), 0 20px 48px rgba(195, 151, 72, 0.18)',
+                    transform: 'translateY(-4px)',
+                    '&::before': { height: '3px', opacity: 1 },
+                    '& .icon-ring': {
+                      borderColor: colors.gold,
+                      transform: 'scale(1.05)',
+                    },
+                    '& .enter-cta': { color: colors.goldDark },
+                    '& .enter-underline': { transform: 'scaleX(1)' },
+                    '& .arrow': { transform: 'translateX(5px)' },
+                  },
+                }}
+              >
+                <Box sx={{ width: '100%' }}>
                   <Box
+                    className="icon-ring"
                     sx={{
+                      width: { xs: 60, md: 68, xl: 80 },
+                      height: { xs: 60, md: 68, xl: 80 },
+                      borderRadius: '50%',
+                      border: `1px solid ${colors.gold}45`,
+                      color: colors.gold,
                       display: 'flex',
-                      alignItems: 'flex-start',
-                      justifyContent: 'space-between',
-                      mb: 3,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      mx: 'auto',
+                      mb: { xs: 2.5, xl: 3.5 },
+                      transition: 'all 0.45s ease',
+                      '& svg': {
+                        fontSize: { xs: 28, md: 32, xl: 38 },
+                      },
                     }}
                   >
-                    <Box
-                      sx={{
-                        width: 56,
-                        height: 56,
-                        borderRadius: '16px',
-                        bgcolor: `${card.color}08`,
-                        border: `1.5px solid ${card.color}18`,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        color: card.color,
-                      }}
-                    >
-                      {card.icon}
-                    </Box>
-                    <Box
-                      sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 0.75,
-                        px: 1.5,
-                        py: 0.4,
-                        borderRadius: '7px',
-                        bgcolor: `${card.color}06`,
-                        border: `1px solid ${card.color}12`,
-                      }}
-                    >
-                      {!card.enabled && (
-                        <LockOutlinedIcon sx={{ fontSize: 12, color: card.color }} />
-                      )}
-                      <Typography
-                        sx={{
-                          fontSize: 10.5,
-                          fontWeight: 600,
-                          color: card.color,
-                          letterSpacing: '0.03em',
-                        }}
-                      >
-                        {card.badge}
-                      </Typography>
-                    </Box>
+                    {card.icon}
                   </Box>
 
-                  {/* Title + subtitle */}
                   <Typography
                     sx={{
-                      fontFamily: '"Playfair Display", Georgia, serif',
-                      fontSize: { xs: 26, md: 32 },
-                      fontWeight: 700,
-                      color: colors.textPrimary,
-                      lineHeight: 1.15,
-                      letterSpacing: '-0.01em',
-                      mb: 0.5,
+                      fontFamily: '"Playfair Display", "Palatino", Georgia, serif',
+                      fontSize: { xs: 30, md: 38, xl: 48 },
+                      fontWeight: 600,
+                      color: colors.brandDark,
+                      lineHeight: 1.05,
+                      mb: { xs: 1.75, xl: 2.25 },
+                      letterSpacing: '-0.015em',
                     }}
                   >
                     {card.title}
                   </Typography>
+
+                  {/* Small gold hairline beneath title — structural, not decorative */}
+                  <Box
+                    sx={{
+                      width: 28,
+                      height: '1px',
+                      bgcolor: `${colors.gold}80`,
+                      mx: 'auto',
+                      mb: { xs: 2, xl: 2.5 },
+                    }}
+                  />
+
                   <Typography
                     sx={{
-                      fontSize: 14,
+                      fontFamily: '"Avenir", "Inter", sans-serif',
+                      fontSize: { xs: 10.5, xl: 11.5 },
                       fontWeight: 600,
-                      color: card.color,
-                      letterSpacing: '0.02em',
-                      mb: 2,
+                      color: colors.gold,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.26em',
+                      mb: { xs: 2.5, xl: 3 },
                     }}
                   >
                     {card.subtitle}
                   </Typography>
 
-                  {/* Description */}
                   <Typography
                     sx={{
-                      fontSize: { xs: 13, md: 14 },
+                      fontFamily: '"Avenir", "Inter", sans-serif',
+                      fontSize: { xs: 13, xl: 15 },
                       color: colors.textSecondary,
-                      lineHeight: 1.7,
-                      mb: 3,
+                      lineHeight: 1.65,
+                      maxWidth: { xs: 320, xl: 420 },
+                      mx: 'auto',
                     }}
                   >
-                    {card.description}
+                    {card.caption}
                   </Typography>
+                </Box>
 
-                  {/* Separator */}
-                  <Box sx={{ height: 1, bgcolor: `${card.color}10`, mb: 2.5 }} />
-
-                  {/* Highlights */}
+                <Box sx={{ width: '100%', mt: 3 }}>
                   <Box
                     sx={{
-                      display: 'grid',
-                      gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)' },
-                      gap: 1.75,
-                      mb: 3,
+                      width: { xs: 36, xl: 48 },
+                      height: '1px',
+                      bgcolor: `${colors.gold}70`,
+                      mx: 'auto',
+                      mb: { xs: 2.25, xl: 3 },
                     }}
-                  >
-                    {card.highlights.map((h) => (
-                      <Box
-                        key={h.label}
-                        sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}
-                      >
-                        <Typography sx={{ fontSize: 15, lineHeight: 1.3, flexShrink: 0 }}>
-                          {h.emoji}
-                        </Typography>
-                        <Box>
-                          <Typography
-                            sx={{
-                              fontSize: 12,
-                              fontWeight: 700,
-                              color: colors.textPrimary,
-                              lineHeight: 1.3,
-                              mb: 0.15,
-                            }}
-                          >
-                            {h.label}
-                          </Typography>
-                          <Typography
-                            sx={{ fontSize: 10.5, color: '#9ca3af', lineHeight: 1.45 }}
-                          >
-                            {h.desc}
-                          </Typography>
-                        </Box>
-                      </Box>
-                    ))}
-                  </Box>
+                  />
 
-                  {/* CTA */}
                   <Box
+                    className="enter-cta"
                     sx={{
                       display: 'inline-flex',
                       alignItems: 'center',
-                      gap: 1,
-                      px: 3,
-                      py: 1.25,
-                      borderRadius: '10px',
-                      bgcolor: card.enabled ? card.color : `${card.color}40`,
-                      color: '#fff',
-                      boxShadow: card.enabled
-                        ? `0 4px 14px ${card.color}35`
-                        : 'none',
-                      transition: 'all 0.25s cubic-bezier(0.4,0,0.2,1)',
+                      gap: 0.75,
+                      color: colors.gold,
+                      position: 'relative',
+                      transition: 'color 0.3s ease',
                     }}
                   >
                     <Typography
                       sx={{
-                        fontSize: 13.5,
+                        fontFamily: '"Avenir", "Inter", sans-serif',
+                        fontSize: { xs: 10.5, xl: 12 },
                         fontWeight: 700,
-                        color: '#fff',
-                        letterSpacing: '0.03em',
+                        letterSpacing: '0.3em',
+                        textTransform: 'uppercase',
                       }}
                     >
-                      {card.enabled ? 'View Insights' : 'Coming Soon'}
+                      Enter
                     </Typography>
-                    {card.enabled && (
-                      <ArrowForwardIcon
-                        className="arrow-icon"
-                        sx={{ fontSize: 17, color: '#fff', transition: 'transform 0.25s ease' }}
-                      />
-                    )}
+                    <ArrowForwardIcon
+                      className="arrow"
+                      sx={{
+                        fontSize: { xs: 14, xl: 16 },
+                        transition: 'transform 0.3s ease',
+                      }}
+                    />
+                    <Box
+                      className="enter-underline"
+                      sx={{
+                        position: 'absolute',
+                        left: 0,
+                        right: 0,
+                        bottom: -4,
+                        height: '1px',
+                        bgcolor: colors.gold,
+                        transform: 'scaleX(0)',
+                        transformOrigin: 'center',
+                        transition: 'transform 0.4s ease',
+                      }}
+                    />
                   </Box>
                 </Box>
               </Box>
@@ -481,70 +447,74 @@ export function LandingPage() {
           ))}
         </Box>
 
-        {/* Footer */}
+        {/* Closing seal */}
         <MotionBox
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.8, duration: 0.5 }}
-          sx={{ mt: { xs: 5, md: 8 }, pb: 2 }}
+          transition={{ duration: 0.6, delay: 0.7 }}
+          sx={{ textAlign: 'center', mt: { xs: 5, md: 7, xl: 9 } }}
         >
           <Box
             sx={{
               display: 'flex',
-              justifyContent: 'center',
               alignItems: 'center',
+              justifyContent: 'center',
               gap: 2,
-              mb: 3,
+              maxWidth: { xs: 320, xl: 400 },
+              mx: 'auto',
+              mb: 1.75,
             }}
           >
             <Box
               sx={{
                 flex: 1,
-                maxWidth: 200,
-                height: 1,
-                background: `linear-gradient(90deg, transparent, ${colors.gold}30)`,
+                height: '1px',
+                background: `linear-gradient(90deg, transparent, ${colors.gold}55)`,
               }}
             />
             <Box
               sx={{
-                width: 5,
-                height: 5,
+                width: 4,
+                height: 4,
                 borderRadius: '50%',
                 bgcolor: colors.gold,
-                opacity: 0.4,
+                opacity: 0.75,
               }}
             />
             <Box
               sx={{
                 flex: 1,
-                maxWidth: 200,
-                height: 1,
-                background: `linear-gradient(90deg, ${colors.gold}30, transparent)`,
+                height: '1px',
+                background: `linear-gradient(90deg, ${colors.gold}55, transparent)`,
               }}
             />
           </Box>
+          <Typography
+            sx={{
+              fontFamily: '"Avenir", "Inter", sans-serif',
+              fontSize: { xs: 10, xl: 11 },
+              fontWeight: 600,
+              color: colors.brandDark,
+              letterSpacing: '0.45em',
+              textTransform: 'uppercase',
+              opacity: 0.7,
+            }}
+          >
+            Made to Remember<sup style={{ fontSize: '0.6em', marginLeft: 1 }}>®</sup>
+          </Typography>
 
-          <Box sx={{ textAlign: 'center' }}>
-            <Typography
-              sx={{
-                fontFamily: '"Playfair Display", Georgia, serif',
-                fontSize: { xs: 18, md: 22 },
-                fontStyle: 'italic',
-                fontWeight: 400,
-                color: colors.textSecondary,
-                letterSpacing: '0.02em',
-                lineHeight: 1.4,
-                mb: 2,
-              }}
-            >
-              Insights made to remember.
-            </Typography>
-            <Typography
-              sx={{ fontSize: 10.5, color: '#c4c9d0', letterSpacing: '0.03em' }}
-            >
-              &copy; {new Date().getFullYear()} Hooten Young American Whiskey
-            </Typography>
-          </Box>
+          <Typography
+            sx={{
+              fontFamily: '"Avenir", "Inter", sans-serif',
+              fontSize: { xs: 9.5, xl: 10 },
+              fontWeight: 500,
+              color: colors.textMuted,
+              letterSpacing: '0.12em',
+              mt: 1.25,
+            }}
+          >
+            &copy; {year} Hooten Young American Whiskey · All rights reserved
+          </Typography>
         </MotionBox>
       </Container>
     </Box>

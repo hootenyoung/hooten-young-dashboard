@@ -1,6 +1,10 @@
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import { Box, Chip, CircularProgress, Paper, Typography } from '@mui/material';
-import { useSalesByProduct, type DateRange, type ProductPerformance as ProductPerformanceItem } from '../api/sales';
+import {
+  useSalesByProduct,
+  type DateRange,
+  type ProductPerformance as ProductPerformanceItem,
+} from '../api/sales';
 import { colors } from '../theme';
 
 interface ProductPerformanceProps {
@@ -30,7 +34,11 @@ function getPriceTier(avgPricePerCase: number | null): PriceTier {
 }
 
 const TIER_STYLE: Record<PriceTier, { bg: string; color: string; border: string }> = {
-  'Ultra Premium': { bg: 'rgba(139,92,246,0.06)', color: '#7c3aed', border: 'rgba(139,92,246,0.15)' },
+  'Ultra Premium': {
+    bg: 'rgba(139,92,246,0.06)',
+    color: '#7c3aed',
+    border: 'rgba(139,92,246,0.15)',
+  },
   Premium: { bg: 'rgba(99,91,255,0.06)', color: '#635bff', border: 'rgba(99,91,255,0.15)' },
   Core: { bg: 'rgba(16,185,129,0.06)', color: '#059669', border: 'rgba(16,185,129,0.15)' },
 };
@@ -121,7 +129,11 @@ export function ProductPerformance({ range }: ProductPerformanceProps) {
           <Chip
             size="small"
             label={`${products.length} SKUs`}
-            sx={{ bgcolor: `${colors.chartPrimary}10`, color: colors.chartPrimary, fontWeight: 600 }}
+            sx={{
+              bgcolor: `${colors.chartPrimary}10`,
+              color: colors.chartPrimary,
+              fontWeight: 600,
+            }}
           />
           <Chip
             size="small"
@@ -263,10 +275,20 @@ export function ProductPerformance({ range }: ProductPerformanceProps) {
             return (
               <Box
                 key={tier}
-                sx={{ p: 2, borderRadius: 2, border: `1px solid ${style.border}`, bgcolor: style.bg }}
+                sx={{
+                  p: 2,
+                  borderRadius: 2,
+                  border: `1px solid ${style.border}`,
+                  bgcolor: style.bg,
+                }}
               >
                 <Box
-                  sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    mb: 1,
+                  }}
                 >
                   <Chip
                     label={tier}
@@ -311,8 +333,8 @@ export function ProductPerformance({ range }: ProductPerformanceProps) {
                   />
                 </Box>
                 <Typography sx={{ fontSize: 11.5, color: colors.textMuted, mb: 1 }}>
-                  {pct.toFixed(0)}% of revenue · {numberFormatter.format(t.cases)} cases ·{' '}
-                  avg {formatCurrency(avgPrice)} / case
+                  {pct.toFixed(0)}% of revenue · {numberFormatter.format(t.cases)} cases · avg{' '}
+                  {formatCurrency(avgPrice)} / case
                 </Typography>
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
                   {t.products.map((p) => (
@@ -365,7 +387,9 @@ function ProductCard({ product, rank, color, maxRevenue }: ProductCardProps) {
         '&:hover': { borderColor: '#d1d5db', boxShadow: '0 4px 14px rgba(0,0,0,0.04)' },
       }}
     >
-      <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', mb: 1 }}>
+      <Box
+        sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', mb: 1 }}
+      >
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, minWidth: 0, flex: 1 }}>
           <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: color, flexShrink: 0 }} />
           <Typography
@@ -401,7 +425,14 @@ function ProductCard({ product, rank, color, maxRevenue }: ProductCardProps) {
       <Chip
         label={`${tier} · ${avgPrice !== null ? formatCurrency(avgPrice) : '—'} / case`}
         size="small"
-        sx={{ height: 20, fontSize: 11, fontWeight: 600, bgcolor: tierStyle.bg, color: tierStyle.color, mb: 1 }}
+        sx={{
+          height: 20,
+          fontSize: 11,
+          fontWeight: 600,
+          bgcolor: tierStyle.bg,
+          color: tierStyle.color,
+          mb: 1,
+        }}
       />
 
       <Box sx={{ mb: 1 }}>
@@ -417,7 +448,12 @@ function ProductCard({ product, rank, color, maxRevenue }: ProductCardProps) {
             {formatShort(revenue)}
           </Typography>
           <Typography
-            sx={{ fontSize: 13, fontWeight: 600, color: colors.chartPrimary, alignSelf: 'flex-end' }}
+            sx={{
+              fontSize: 13,
+              fontWeight: 600,
+              color: colors.chartPrimary,
+              alignSelf: 'flex-end',
+            }}
           >
             {(product.pct_of_revenue * 100).toFixed(1)}%
           </Typography>
@@ -431,7 +467,9 @@ function ProductCard({ product, rank, color, maxRevenue }: ProductCardProps) {
             overflow: 'hidden',
           }}
         >
-          <Box sx={{ width: `${revPct}%`, height: '100%', bgcolor: color, transition: 'width 0.4s' }} />
+          <Box
+            sx={{ width: `${revPct}%`, height: '100%', bgcolor: color, transition: 'width 0.4s' }}
+          />
         </Box>
       </Box>
 

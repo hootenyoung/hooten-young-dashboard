@@ -167,7 +167,9 @@ export function OrderAnalysis({ range }: OrderAnalysisProps) {
                   {bucketData.map((_, i) => (
                     <Cell
                       key={i}
-                      fill={colors.chartColors[i % colors.chartColors.length] ?? colors.chartPrimary}
+                      fill={
+                        colors.chartColors[i % colors.chartColors.length] ?? colors.chartPrimary
+                      }
                     />
                   ))}
                 </Bar>
@@ -280,9 +282,7 @@ export function OrderAnalysis({ range }: OrderAnalysisProps) {
                 <Typography sx={{ fontSize: 11.5, color: colors.textMuted }}>
                   {d.order_count} order{d.order_count !== 1 ? 's' : ''}
                 </Typography>
-                <Typography
-                  sx={{ fontSize: 11.5, color: colors.textSecondary, fontWeight: 600 }}
-                >
+                <Typography sx={{ fontSize: 11.5, color: colors.textSecondary, fontWeight: 600 }}>
                   avg {formatShort(Number(d.avg_order_value))}
                 </Typography>
               </Box>

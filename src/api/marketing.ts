@@ -176,8 +176,7 @@ export interface AudienceSignalsResponse {
 export function useAudienceSignals(): UseQueryResult<AudienceSignalsResponse> {
   return useQuery({
     queryKey: ['marketing', 'audience-signals'],
-    queryFn: () =>
-      apiGet<AudienceSignalsResponse>('marketing', '/api/marketing/audience-signals'),
+    queryFn: () => apiGet<AudienceSignalsResponse>('marketing', '/api/marketing/audience-signals'),
   });
 }
 
@@ -251,8 +250,7 @@ export interface BriefResponse {
 export function useLatestBrief(): UseQueryResult<BriefResponse | null> {
   return useQuery({
     queryKey: ['marketing', 'briefs', 'latest'],
-    queryFn: () =>
-      apiGet<BriefResponse | null>('marketing', '/api/marketing/briefs/latest'),
+    queryFn: () => apiGet<BriefResponse | null>('marketing', '/api/marketing/briefs/latest'),
   });
 }
 
@@ -302,8 +300,7 @@ export interface GenerateVideoRequest {
   with_audio?: boolean;
 }
 
-const MARKETING_BASE = () =>
-  (import.meta.env.VITE_MARKETING_API_URL ?? '').replace(/\/$/, '');
+const MARKETING_BASE = () => (import.meta.env.VITE_MARKETING_API_URL ?? '').replace(/\/$/, '');
 
 async function postJSON<T>(path: string, body: unknown): Promise<T> {
   const res = await fetch(`${MARKETING_BASE()}${path}`, {

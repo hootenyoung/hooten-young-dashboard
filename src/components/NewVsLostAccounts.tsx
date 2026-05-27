@@ -16,7 +16,15 @@ interface AccountListProps {
   caption: string;
 }
 
-function AccountList({ title, icon: Icon, color, accounts, totalCases, count, caption }: AccountListProps) {
+function AccountList({
+  title,
+  icon: Icon,
+  color,
+  accounts,
+  totalCases,
+  count,
+  caption,
+}: AccountListProps) {
   return (
     <Box
       sx={{
@@ -76,7 +84,16 @@ function AccountList({ title, icon: Icon, color, accounts, totalCases, count, ca
           No accounts in this group.
         </Typography>
       ) : (
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, mt: 1.5, maxHeight: 280, overflowY: 'auto' }}>
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 0.5,
+            mt: 1.5,
+            maxHeight: 280,
+            overflowY: 'auto',
+          }}
+        >
           {accounts.slice(0, 50).map((acc) => (
             <Box
               key={acc.account_id}
@@ -144,7 +161,10 @@ export function NewVsLostAccounts() {
   if (isLoading || !data) {
     return (
       <Paper elevation={0} sx={{ p: 3, border: `1px solid ${colors.border}`, borderRadius: 2 }}>
-        <Typography variant="h6" sx={{ fontFamily: '"Playfair Display", Georgia, serif', fontWeight: 600, mb: 2 }}>
+        <Typography
+          variant="h6"
+          sx={{ fontFamily: '"Playfair Display", Georgia, serif', fontWeight: 600, mb: 2 }}
+        >
           New vs Lost Accounts
         </Typography>
         <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
@@ -167,7 +187,8 @@ export function NewVsLostAccounts() {
           New vs Lost Accounts
         </Typography>
         <Typography variant="caption" color="text.secondary">
-          Accounts gained or lost between the recent {data.window_months}-month window and the prior {data.window_months}-month window.
+          Accounts gained or lost between the recent {data.window_months}-month window and the prior{' '}
+          {data.window_months}-month window.
         </Typography>
       </Box>
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2 }}>

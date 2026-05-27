@@ -93,7 +93,8 @@ export function Recommendations({ range }: RecommendationsProps) {
             type: 'warning',
             category: 'Growth',
             title: `Revenue Down ${Math.abs(growth).toFixed(0)}% Across Period`,
-            action: 'Investigate root cause — distributor pullback, seasonality, or pricing pressure?',
+            action:
+              'Investigate root cause — distributor pullback, seasonality, or pricing pressure?',
             metrics: [
               { label: 'First', value: formatShort(first) },
               { label: 'Latest', value: formatShort(last), highlight: true },
@@ -309,7 +310,13 @@ export function Recommendations({ range }: RecommendationsProps) {
                       }}
                     >
                       <Typography
-                        sx={{ fontSize: 10, fontWeight: 700, color: colors.textMuted, letterSpacing: '0.06em', textTransform: 'uppercase' }}
+                        sx={{
+                          fontSize: 10,
+                          fontWeight: 700,
+                          color: colors.textMuted,
+                          letterSpacing: '0.06em',
+                          textTransform: 'uppercase',
+                        }}
                       >
                         {metric.label}
                       </Typography>

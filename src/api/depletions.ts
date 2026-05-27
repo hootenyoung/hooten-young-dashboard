@@ -129,10 +129,7 @@ export interface TopAccountsResponse {
   total_9l: string;
 }
 
-export function useTopAccounts(
-  range?: DateRange,
-  limit = 20,
-): UseQueryResult<TopAccountsResponse> {
+export function useTopAccounts(range?: DateRange, limit = 20): UseQueryResult<TopAccountsResponse> {
   return useQuery({
     queryKey: ['depletions', 'top-accounts', range ?? {}, limit],
     queryFn: () =>
@@ -202,9 +199,7 @@ export interface NewVsLostAccountsResponse {
   lost_accounts: AccountBrief[];
 }
 
-export function useNewVsLostAccounts(
-  windowMonths = 3,
-): UseQueryResult<NewVsLostAccountsResponse> {
+export function useNewVsLostAccounts(windowMonths = 3): UseQueryResult<NewVsLostAccountsResponse> {
   return useQuery({
     queryKey: ['depletions', 'new-vs-lost', windowMonths],
     queryFn: () =>

@@ -1,14 +1,5 @@
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import {
-  Alert,
-  Box,
-  Chip,
-  Container,
-  Paper,
-  Skeleton,
-  Stack,
-  Typography,
-} from '@mui/material';
+import { Alert, Box, Chip, Container, Paper, Skeleton, Stack, Typography } from '@mui/material';
 import { motion } from 'framer-motion';
 import { Link as RouterLink } from 'react-router-dom';
 import { Header } from '../components/Header';
@@ -125,9 +116,7 @@ export function MarketingPatternsPage() {
                 >
                   <Box sx={{ flex: 1, minWidth: 0 }}>
                     <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 0.5 }}>
-                      <Typography
-                        sx={{ fontSize: 14, fontWeight: 700, color: colors.textPrimary }}
-                      >
+                      <Typography sx={{ fontSize: 14, fontWeight: 700, color: colors.textPrimary }}>
                         {p.title}
                       </Typography>
                       {p.category ? (
@@ -176,14 +165,14 @@ export function MarketingPatternsPage() {
                         p.confidence === 'high'
                           ? `${colors.success}15`
                           : p.confidence === 'medium'
-                          ? `${colors.warning}15`
-                          : '#f3f4f6',
+                            ? `${colors.warning}15`
+                            : '#f3f4f6',
                       color:
                         p.confidence === 'high'
                           ? colors.success
                           : p.confidence === 'medium'
-                          ? colors.warning
-                          : colors.textMuted,
+                            ? colors.warning
+                            : colors.textMuted,
                       fontSize: 10.5,
                       fontWeight: 700,
                     }}

@@ -1,9 +1,5 @@
 import { Box, CircularProgress, Paper, Typography } from '@mui/material';
-import {
-  useRiskDashboard,
-  type ConcentrationMetric,
-  type DateRange,
-} from '../api/sales';
+import { useRiskDashboard, type ConcentrationMetric, type DateRange } from '../api/sales';
 import { colors } from '../theme';
 
 interface RiskDashboardProps {
@@ -101,9 +97,7 @@ function ConcentrationCard({ title, description, metric }: ConcentrationCardProp
           >
             HHI {metric.hhi.toFixed(0)} / 10000
           </Typography>
-          <Typography
-            sx={{ fontSize: 11.5, fontWeight: 700, color: hhi.color }}
-          >
+          <Typography sx={{ fontSize: 11.5, fontWeight: 700, color: hhi.color }}>
             {hhi.label}
           </Typography>
         </Box>

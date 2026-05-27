@@ -17,11 +17,16 @@ import {
   Paper,
   Skeleton,
   Stack,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
   Typography,
 } from '@mui/material';
 import { useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
 import {
   Bar,
@@ -45,7 +50,6 @@ import {
   useGenerateImage,
   useGenerateVideo,
   useLatestBrief,
-  useMediaHistory,
   usePatterns,
 } from '../api/marketing';
 import { colors } from '../theme';
@@ -57,11 +61,23 @@ function n(value: number | null | undefined): string {
   if (value === null || value === undefined) return '—';
   return numberFormatter.format(Math.round(Number(value)));
 }
+function pct(value: number | null | undefined): string {
+  if (value === null || value === undefined) return '—';
+  return `${value > 0 ? '+' : ''}${Number(value).toFixed(1)}%`;
+}
 
 // =================================================================
 // SECTION HEADER
 // =================================================================
-function SectionTitle({ eyebrow, title, subtitle }: { eyebrow: string; title: string; subtitle?: string }) {
+function SectionTitle({
+  eyebrow,
+  title,
+  subtitle,
+}: {
+  eyebrow: string;
+  title: string;
+  subtitle?: string;
+}) {
   return (
     <Box sx={{ mb: 2.5 }}>
       <Typography
@@ -119,28 +135,63 @@ function HeroBrief() {
   const generate = useGenerateBrief();
   const generateImage = useGenerateImage();
   const generateVideo = useGenerateVideo();
-  // Generated-asset gallery — fetched from the server's /media/history.
-  // Local dismissals are an in-memory "hidden ids" filter; we don't have a
-  // DELETE endpoint yet, so dismiss only hides for this page-view.
-  const history = useMediaHistory();
-  const [hiddenIds, setHiddenIds] = useState<Set<number>>(new Set());
-  const generatedMedia: MediaResponse[] = (history.data?.assets ?? []).filter(
-    (a) => a.id === undefined || !hiddenIds.has(a.id),
-  );
-  const removeMedia = (idx: number) => {
-    const target = generatedMedia[idx];
-    if (target?.id !== undefined) {
-      setHiddenIds((prev) => new Set(prev).add(target.id!));
+  // List of generated assets, newest first. Each click appends — nothing
+  // is replaced, so the team can compare image + reel side by side.
+  //
+  // Persisted to localStorage so navigating away (e.g. to /marketing/patterns)
+  // and back doesn't blow them away. Capped to the last 24 to keep storage
+  // sane; older results scroll off. Tied to the current brief's timestamp so
+  // a fresh brief gives the team a clean slate.
+  const briefStamp = data?.recommendation?._generated_at ?? '';
+  const storageKey = briefStamp ? `hy-marketing-media:${briefStamp}` : 'hy-marketing-media:current';
+
+  const [generatedMedia, setGeneratedMedia] = useState<MediaResponse[]>(() => {
+    try {
+      const raw = localStorage.getItem(storageKey);
+      return raw ? (JSON.parse(raw) as MediaResponse[]) : [];
+    } catch {
+      return [];
     }
-  };
+  });
+
+  useEffect(() => {
+    try {
+      if (generatedMedia.length === 0) {
+        localStorage.removeItem(storageKey);
+      } else {
+        localStorage.setItem(storageKey, JSON.stringify(generatedMedia.slice(0, 24)));
+      }
+    } catch {
+      // Quota exceeded or storage disabled — silently ignore; in-memory state still works.
+    }
+  }, [storageKey, generatedMedia]);
+
+  // When a new brief is generated, drop stale entries tied to old briefs.
+  useEffect(() => {
+    if (!briefStamp) return;
+    try {
+      for (let i = localStorage.length - 1; i >= 0; i--) {
+        const key = localStorage.key(i);
+        if (
+          key &&
+          key.startsWith('hy-marketing-media:') &&
+          key !== storageKey &&
+          key !== 'hy-marketing-media:current'
+        ) {
+          localStorage.removeItem(key);
+        }
+      }
+    } catch {
+      // ignore
+    }
+  }, [briefStamp, storageKey]);
+
+  const removeMedia = (idx: number) =>
+    setGeneratedMedia((prev) => prev.filter((_, i) => i !== idx));
 
   const handleGenerate = async () => {
     await generate.mutateAsync();
-    // The new brief replaces the old; hide any current assets so the gallery
-    // restarts for the new recommendation.
-    setHiddenIds(
-      new Set((history.data?.assets ?? []).map((a) => a.id).filter((id): id is number => id !== undefined)),
-    );
+    setGeneratedMedia([]); // a fresh brief invalidates the old visuals
     queryClient.invalidateQueries({ queryKey: ['marketing', 'briefs', 'latest'] });
     queryClient.invalidateQueries({ queryKey: ['marketing', 'patterns'] });
   };
@@ -165,12 +216,18 @@ function HeroBrief() {
         />
         <Button
           variant="contained"
-          startIcon={generate.isPending ? <CircularProgress size={16} color="inherit" /> : <AutoAwesomeIcon />}
+          startIcon={
+            generate.isPending ? (
+              <CircularProgress size={16} color="inherit" />
+            ) : (
+              <AutoAwesomeIcon />
+            )
+          }
           onClick={handleGenerate}
           disabled={generate.isPending}
           sx={{ mt: 1, bgcolor: colors.gold, '&:hover': { bgcolor: colors.goldDark } }}
         >
-          {generate.isPending ? 'Generating…' : 'Generate this week\'s brief'}
+          {generate.isPending ? 'Generating…' : "Generate this week's brief"}
         </Button>
       </SectionCard>
     );
@@ -267,153 +324,32 @@ function HeroBrief() {
           below, copy when ready, or click Regenerate for a fresh take.
         </Typography>
 
-      {/* TIER 3: theme / visual direction */}
-      <LabeledBlock label="Theme & visual direction">
-        <Typography sx={{ fontSize: 14, color: colors.textPrimary, lineHeight: 1.65 }}>
-          {rec.theme}
-        </Typography>
-      </LabeledBlock>
-
-      {/* TIER 4: caption */}
-      {rec.caption_draft ? (
-        <LabeledBlock label="Caption (ready to copy)" accent>
-          <Typography
-            sx={{ fontSize: 14, color: colors.textPrimary, whiteSpace: 'pre-line', lineHeight: 1.65 }}
-          >
-            {rec.caption_draft}
+        {/* TIER 3: theme / visual direction */}
+        <LabeledBlock label="Theme & visual direction">
+          <Typography sx={{ fontSize: 14, color: colors.textPrimary, lineHeight: 1.65 }}>
+            {rec.theme}
           </Typography>
         </LabeledBlock>
-      ) : null}
 
-      {/* TIER 5: hashtags */}
-      {(rec.hashtags ?? []).length > 0 ? (
-        <Box sx={{ mb: 2.5 }}>
-          <Typography
-            sx={{
-              fontSize: 11,
-              fontWeight: 700,
-              color: colors.textMuted,
-              letterSpacing: '0.08em',
-              textTransform: 'uppercase',
-              mb: 1,
-            }}
-          >
-            Hashtags
-          </Typography>
-          <Stack direction="row" spacing={0.75} flexWrap="wrap" sx={{ gap: 0.75 }}>
-            {(rec.hashtags ?? []).map((tag) => (
-              <Chip
-                key={tag}
-                label={tag}
-                size="small"
-                sx={{ bgcolor: '#f3f4f6', color: colors.textSecondary, fontSize: 12 }}
-              />
-            ))}
-          </Stack>
-        </Box>
-      ) : null}
+        {/* TIER 4: caption */}
+        {rec.caption_draft ? (
+          <LabeledBlock label="Caption (ready to copy)" accent>
+            <Typography
+              sx={{
+                fontSize: 14,
+                color: colors.textPrimary,
+                whiteSpace: 'pre-line',
+                lineHeight: 1.65,
+              }}
+            >
+              {rec.caption_draft}
+            </Typography>
+          </LabeledBlock>
+        ) : null}
 
-      {/* TIER 6: actions */}
-      <Stack direction="row" spacing={1.25} sx={{ mt: 2, flexWrap: 'wrap', gap: 1 }}>
-        <Button
-          variant="contained"
-          size="small"
-          startIcon={<ContentCopyIcon sx={{ fontSize: 16 }} />}
-          onClick={handleCopy}
-          sx={{
-            bgcolor: colors.gold,
-            color: '#fff',
-            '&:hover': { bgcolor: colors.goldDark },
-            textTransform: 'none',
-            fontWeight: 700,
-          }}
-        >
-          Copy caption + hashtags
-        </Button>
-        <Button
-          variant="outlined"
-          size="small"
-          startIcon={
-            generateImage.isPending ? <CircularProgress size={14} color="inherit" /> : <ImageIcon sx={{ fontSize: 16 }} />
-          }
-          onClick={async () => {
-            if (!rec.visual_direction) return;
-            const result = await generateImage.mutateAsync({
-              visual_direction: rec.visual_direction,
-              aspect_ratio: '1:1',
-              use_brand_reference: true,  // Always anchor to HY's real bottle.
-            });
-            // result.id is server-assigned; the next history refetch will
-            // include it naturally. Force a refetch so it shows immediately.
-            void result;
-            queryClient.invalidateQueries({ queryKey: ['marketing', 'media-history'] });
-          }}
-          disabled={generateImage.isPending || generateVideo.isPending || !rec.visual_direction}
-          sx={{
-            borderColor: colors.gold,
-            color: colors.goldDark,
-            textTransform: 'none',
-            fontWeight: 700,
-          }}
-        >
-          {generateImage.isPending ? 'Generating image…' : 'Generate image'}
-        </Button>
-        <Button
-          variant="outlined"
-          size="small"
-          startIcon={
-            generateVideo.isPending ? <CircularProgress size={14} color="inherit" /> : <VideocamIcon sx={{ fontSize: 16 }} />
-          }
-          onClick={async () => {
-            if (!rec.visual_direction) return;
-            const result = await generateVideo.mutateAsync({
-              visual_direction: rec.visual_direction,
-              aspect_ratio: '9:16',
-              duration_sec: 6,
-            });
-            // result.id is server-assigned; the next history refetch will
-            // include it naturally. Force a refetch so it shows immediately.
-            void result;
-            queryClient.invalidateQueries({ queryKey: ['marketing', 'media-history'] });
-          }}
-          disabled={generateVideo.isPending || generateImage.isPending || !rec.visual_direction}
-          sx={{
-            borderColor: colors.gold,
-            color: colors.goldDark,
-            textTransform: 'none',
-            fontWeight: 700,
-          }}
-        >
-          {generateVideo.isPending ? 'Generating reel…' : 'Generate reel'}
-        </Button>
-        <Button
-          variant="text"
-          size="small"
-          startIcon={
-            generate.isPending ? <CircularProgress size={14} color="inherit" /> : <RefreshIcon />
-          }
-          onClick={handleGenerate}
-          disabled={generate.isPending}
-          sx={{
-            color: colors.textMuted,
-            textTransform: 'none',
-            fontWeight: 600,
-          }}
-        >
-          {generate.isPending ? 'Regenerating…' : 'Regenerate brief'}
-        </Button>
-      </Stack>
-
-      {/* TIER 7: generated visual (if any) */}
-      {(generateImage.error || generateVideo.error) ? (
-        <Alert severity="error" sx={{ mt: 2 }}>
-          {generateImage.error?.message || generateVideo.error?.message}
-        </Alert>
-      ) : null}
-
-      {generatedMedia.length > 0 ? (
-        <Box sx={{ mt: 2 }}>
-          <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}>
+        {/* TIER 5: hashtags */}
+        {(rec.hashtags ?? []).length > 0 ? (
+          <Box sx={{ mb: 2.5 }}>
             <Typography
               sx={{
                 fontSize: 11,
@@ -421,186 +357,310 @@ function HeroBrief() {
                 color: colors.textMuted,
                 letterSpacing: '0.08em',
                 textTransform: 'uppercase',
+                mb: 1,
               }}
             >
-              Generated assets ({generatedMedia.length})
+              Hashtags
             </Typography>
-            {generatedMedia.length > 1 ? (
-              <Button
-                size="small"
-                onClick={() => {
-                  // "Clear all" — hide every currently-shown server asset.
-                  setHiddenIds(
-                    new Set(
-                      generatedMedia
-                        .map((a) => a.id)
-                        .filter((id): id is number => id !== undefined),
-                    ),
-                  );
-                }}
-                sx={{
-                  fontSize: 11,
-                  color: colors.textMuted,
-                  textTransform: 'none',
-                  minWidth: 'auto',
-                }}
-              >
-                Clear all
-              </Button>
-            ) : null}
-          </Stack>
-          <Box
+            <Stack direction="row" spacing={0.75} flexWrap="wrap" sx={{ gap: 0.75 }}>
+              {(rec.hashtags ?? []).map((tag) => (
+                <Chip
+                  key={tag}
+                  label={tag}
+                  size="small"
+                  sx={{ bgcolor: '#f3f4f6', color: colors.textSecondary, fontSize: 12 }}
+                />
+              ))}
+            </Stack>
+          </Box>
+        ) : null}
+
+        {/* TIER 6: actions */}
+        <Stack direction="row" spacing={1.25} sx={{ mt: 2, flexWrap: 'wrap', gap: 1 }}>
+          <Button
+            variant="contained"
+            size="small"
+            startIcon={<ContentCopyIcon sx={{ fontSize: 16 }} />}
+            onClick={handleCopy}
             sx={{
-              display: 'grid',
-              gridTemplateColumns: {
-                xs: '1fr',
-                sm: 'repeat(2, minmax(0, 1fr))',
-                md: 'repeat(3, minmax(0, 1fr))',
-              },
-              gap: 2,
+              bgcolor: colors.gold,
+              color: '#fff',
+              '&:hover': { bgcolor: colors.goldDark },
+              textTransform: 'none',
+              fontWeight: 700,
             }}
           >
-            {generatedMedia.map((m, idx) => (
-              <Paper
-                key={`${m.generated_at}-${idx}`}
-                elevation={0}
+            Copy caption + hashtags
+          </Button>
+          <Button
+            variant="outlined"
+            size="small"
+            startIcon={
+              generateImage.isPending ? (
+                <CircularProgress size={14} color="inherit" />
+              ) : (
+                <ImageIcon sx={{ fontSize: 16 }} />
+              )
+            }
+            onClick={async () => {
+              if (!rec.visual_direction) return;
+              const result = await generateImage.mutateAsync({
+                visual_direction: rec.visual_direction,
+                aspect_ratio: '1:1',
+                use_brand_reference: true, // Always anchor to HY's real bottle.
+              });
+              setGeneratedMedia((prev) => [result, ...prev]);
+            }}
+            disabled={generateImage.isPending || generateVideo.isPending || !rec.visual_direction}
+            sx={{
+              borderColor: colors.gold,
+              color: colors.goldDark,
+              textTransform: 'none',
+              fontWeight: 700,
+            }}
+          >
+            {generateImage.isPending ? 'Generating image…' : 'Generate image'}
+          </Button>
+          <Button
+            variant="outlined"
+            size="small"
+            startIcon={
+              generateVideo.isPending ? (
+                <CircularProgress size={14} color="inherit" />
+              ) : (
+                <VideocamIcon sx={{ fontSize: 16 }} />
+              )
+            }
+            onClick={async () => {
+              if (!rec.visual_direction) return;
+              const result = await generateVideo.mutateAsync({
+                visual_direction: rec.visual_direction,
+                aspect_ratio: '9:16',
+                duration_sec: 6,
+              });
+              setGeneratedMedia((prev) => [result, ...prev]);
+            }}
+            disabled={generateVideo.isPending || generateImage.isPending || !rec.visual_direction}
+            sx={{
+              borderColor: colors.gold,
+              color: colors.goldDark,
+              textTransform: 'none',
+              fontWeight: 700,
+            }}
+          >
+            {generateVideo.isPending ? 'Generating reel…' : 'Generate reel'}
+          </Button>
+          <Button
+            variant="text"
+            size="small"
+            startIcon={
+              generate.isPending ? <CircularProgress size={14} color="inherit" /> : <RefreshIcon />
+            }
+            onClick={handleGenerate}
+            disabled={generate.isPending}
+            sx={{
+              color: colors.textMuted,
+              textTransform: 'none',
+              fontWeight: 600,
+            }}
+          >
+            {generate.isPending ? 'Regenerating…' : 'Regenerate brief'}
+          </Button>
+        </Stack>
+
+        {/* TIER 7: generated visual (if any) */}
+        {generateImage.error || generateVideo.error ? (
+          <Alert severity="error" sx={{ mt: 2 }}>
+            {generateImage.error?.message || generateVideo.error?.message}
+          </Alert>
+        ) : null}
+
+        {generatedMedia.length > 0 ? (
+          <Box sx={{ mt: 2 }}>
+            <Stack
+              direction="row"
+              alignItems="center"
+              justifyContent="space-between"
+              sx={{ mb: 1 }}
+            >
+              <Typography
                 sx={{
-                  p: 1.5,
-                  bgcolor: '#fff',
-                  border: `1px solid ${colors.border}`,
-                  borderRadius: 1,
-                  position: 'relative',
+                  fontSize: 11,
+                  fontWeight: 700,
+                  color: colors.textMuted,
+                  letterSpacing: '0.08em',
+                  textTransform: 'uppercase',
                 }}
               >
-                <Stack
-                  direction="row"
-                  justifyContent="space-between"
-                  alignItems="center"
-                  sx={{ mb: 1 }}
-                >
-                  <Chip
-                    label={m.kind === 'image' ? 'IMAGE' : 'REEL'}
-                    size="small"
-                    icon={
-                      m.kind === 'image' ? (
-                        <ImageIcon sx={{ fontSize: 13 }} />
-                      ) : (
-                        <VideocamIcon sx={{ fontSize: 13 }} />
-                      )
-                    }
-                    sx={{
-                      bgcolor: `${colors.gold}15`,
-                      color: colors.goldDark,
-                      fontWeight: 700,
-                      fontSize: 10,
-                      height: 22,
-                      '& .MuiChip-icon': { color: colors.goldDark },
-                    }}
-                  />
-                  <Stack direction="row" spacing={0.5} alignItems="center">
-                    <Button
-                      component="a"
-                      href={resolveMediaUrl(m.url)}
-                      download={`hy-${m.kind}-${new Date(m.generated_at)
-                        .toISOString()
-                        .replace(/[:.]/g, '-')
-                        .slice(0, 19)}.${m.kind === 'image' ? 'png' : 'mp4'}`}
-                      size="small"
-                      sx={{
-                        minWidth: 'auto',
-                        px: 0.75,
-                        py: 0,
-                        color: colors.textMuted,
-                        '&:hover': { color: colors.goldDark, bgcolor: 'transparent' },
-                      }}
-                      aria-label="Download"
-                      title="Download"
-                    >
-                      <DownloadIcon sx={{ fontSize: 16 }} />
-                    </Button>
-                    <Button
-                      onClick={() => removeMedia(idx)}
-                      size="small"
-                      sx={{
-                        minWidth: 'auto',
-                        px: 0.75,
-                        py: 0,
-                        fontSize: 14,
-                        color: colors.textMuted,
-                        '&:hover': { color: colors.error, bgcolor: 'transparent' },
-                      }}
-                      aria-label="Dismiss"
-                      title="Dismiss"
-                    >
-                      ✕
-                    </Button>
-                  </Stack>
-                </Stack>
-                {m.kind === 'image' ? (
-                  <Box
-                    component="img"
-                    src={resolveMediaUrl(m.url)}
-                    alt="Generated"
-                    sx={{
-                      width: '100%',
-                      borderRadius: 1,
-                      display: 'block',
-                      aspectRatio: '1 / 1',
-                      objectFit: 'cover',
-                    }}
-                  />
-                ) : (
-                  <Box
-                    component="video"
-                    src={resolveMediaUrl(m.url)}
-                    controls
-                    sx={{
-                      width: '100%',
-                      borderRadius: 1,
-                      display: 'block',
-                      aspectRatio: '9 / 16',
-                      objectFit: 'cover',
-                      bgcolor: '#000',
-                    }}
-                  />
-                )}
-                <Typography
+                Generated assets ({generatedMedia.length})
+              </Typography>
+              {generatedMedia.length > 1 ? (
+                <Button
+                  size="small"
+                  onClick={() => setGeneratedMedia([])}
                   sx={{
-                    fontSize: 10.5,
+                    fontSize: 11,
                     color: colors.textMuted,
-                    mt: 1,
-                    letterSpacing: '0.02em',
+                    textTransform: 'none',
+                    minWidth: 'auto',
                   }}
                 >
-                  ${m.cost_usd.toFixed(2)} · {m.duration_s.toFixed(0)}s ·{' '}
-                  {new Date(m.generated_at).toLocaleTimeString([], {
-                    hour: 'numeric',
-                    minute: '2-digit',
-                  })}
-                </Typography>
-              </Paper>
-            ))}
+                  Clear all
+                </Button>
+              ) : null}
+            </Stack>
+            <Box
+              sx={{
+                display: 'grid',
+                gridTemplateColumns: {
+                  xs: '1fr',
+                  sm: 'repeat(2, minmax(0, 1fr))',
+                  md: 'repeat(3, minmax(0, 1fr))',
+                },
+                gap: 2,
+              }}
+            >
+              {generatedMedia.map((m, idx) => (
+                <Paper
+                  key={`${m.generated_at}-${idx}`}
+                  elevation={0}
+                  sx={{
+                    p: 1.5,
+                    bgcolor: '#fff',
+                    border: `1px solid ${colors.border}`,
+                    borderRadius: 1,
+                    position: 'relative',
+                  }}
+                >
+                  <Stack
+                    direction="row"
+                    justifyContent="space-between"
+                    alignItems="center"
+                    sx={{ mb: 1 }}
+                  >
+                    <Chip
+                      label={m.kind === 'image' ? 'IMAGE' : 'REEL'}
+                      size="small"
+                      icon={
+                        m.kind === 'image' ? (
+                          <ImageIcon sx={{ fontSize: 13 }} />
+                        ) : (
+                          <VideocamIcon sx={{ fontSize: 13 }} />
+                        )
+                      }
+                      sx={{
+                        bgcolor: `${colors.gold}15`,
+                        color: colors.goldDark,
+                        fontWeight: 700,
+                        fontSize: 10,
+                        height: 22,
+                        '& .MuiChip-icon': { color: colors.goldDark },
+                      }}
+                    />
+                    <Stack direction="row" spacing={0.5} alignItems="center">
+                      <Button
+                        component="a"
+                        href={resolveMediaUrl(m.url)}
+                        download={`hy-${m.kind}-${new Date(m.generated_at)
+                          .toISOString()
+                          .replace(/[:.]/g, '-')
+                          .slice(0, 19)}.${m.kind === 'image' ? 'png' : 'mp4'}`}
+                        size="small"
+                        sx={{
+                          minWidth: 'auto',
+                          px: 0.75,
+                          py: 0,
+                          color: colors.textMuted,
+                          '&:hover': { color: colors.goldDark, bgcolor: 'transparent' },
+                        }}
+                        aria-label="Download"
+                        title="Download"
+                      >
+                        <DownloadIcon sx={{ fontSize: 16 }} />
+                      </Button>
+                      <Button
+                        onClick={() => removeMedia(idx)}
+                        size="small"
+                        sx={{
+                          minWidth: 'auto',
+                          px: 0.75,
+                          py: 0,
+                          fontSize: 14,
+                          color: colors.textMuted,
+                          '&:hover': { color: colors.error, bgcolor: 'transparent' },
+                        }}
+                        aria-label="Dismiss"
+                        title="Dismiss"
+                      >
+                        ✕
+                      </Button>
+                    </Stack>
+                  </Stack>
+                  {m.kind === 'image' ? (
+                    <Box
+                      component="img"
+                      src={resolveMediaUrl(m.url)}
+                      alt="Generated"
+                      sx={{
+                        width: '100%',
+                        borderRadius: 1,
+                        display: 'block',
+                        aspectRatio: '1 / 1',
+                        objectFit: 'cover',
+                      }}
+                    />
+                  ) : (
+                    <Box
+                      component="video"
+                      src={resolveMediaUrl(m.url)}
+                      controls
+                      sx={{
+                        width: '100%',
+                        borderRadius: 1,
+                        display: 'block',
+                        aspectRatio: '9 / 16',
+                        objectFit: 'cover',
+                        bgcolor: '#000',
+                      }}
+                    />
+                  )}
+                  <Typography
+                    sx={{
+                      fontSize: 10.5,
+                      color: colors.textMuted,
+                      mt: 1,
+                      letterSpacing: '0.02em',
+                    }}
+                  >
+                    ${m.cost_usd.toFixed(2)} · {m.duration_s.toFixed(0)}s ·{' '}
+                    {new Date(m.generated_at).toLocaleTimeString([], {
+                      hour: 'numeric',
+                      minute: '2-digit',
+                    })}
+                  </Typography>
+                </Paper>
+              ))}
+            </Box>
           </Box>
-        </Box>
-      ) : null}
+        ) : null}
 
-      {/* Quiet footer: when this brief was generated */}
-      <Typography
-        sx={{
-          fontSize: 11,
-          color: colors.textMuted,
-          mt: 2,
-          letterSpacing: '0.02em',
-        }}
-      >
-        Generated{' '}
-        {rec._generated_at
-          ? new Date(rec._generated_at).toLocaleString(undefined, {
-              dateStyle: 'medium',
-              timeStyle: 'short',
-            })
-          : '—'}
-      </Typography>
+        {/* Quiet footer: when this brief was generated */}
+        <Typography
+          sx={{
+            fontSize: 11,
+            color: colors.textMuted,
+            mt: 2,
+            letterSpacing: '0.02em',
+          }}
+        >
+          Generated{' '}
+          {rec._generated_at
+            ? new Date(rec._generated_at).toLocaleString(undefined, {
+                dateStyle: 'medium',
+                timeStyle: 'short',
+              })
+            : '—'}
+        </Typography>
       </Box>
     </SectionCard>
   );
@@ -680,7 +740,8 @@ function PatternInsights() {
             <Typography sx={{ fontSize: 13, color: colors.textSecondary, mt: 0.75 }}>
               insights extracted this week ·{' '}
               <Box component="span" sx={{ color: colors.success, fontWeight: 700 }}>
-                {(data?.patterns ?? []).filter((p) => p.confidence === 'high').length} high-confidence
+                {(data?.patterns ?? []).filter((p) => p.confidence === 'high').length}{' '}
+                high-confidence
               </Box>
             </Typography>
           </Box>
@@ -719,71 +780,246 @@ function PatternInsights() {
 }
 
 // =================================================================
-// COMPETITOR LANDSCAPE LINK — compact summary tile that navigates
-// to the dedicated /marketing/competitors page (tabs for whiskey,
-// cigar, lifestyle).
+// KPI STRIP — the headline numbers from competitor-watch summary,
+// promoted to a top-of-page row so HY sees positioning at a glance.
 // =================================================================
-function CompetitorLandscapeLink() {
-  const { data, isLoading } = useCompetitorWatch('all');
-  const totalBrands = data?.rows.length ?? 0;
+function MarketingKpiStrip() {
+  const { data, isLoading } = useCompetitorWatch('whiskey');
+  const summary = data?.summary;
+
+  const gapPct =
+    summary?.hy_avg_engagement && summary?.peer_median_engagement
+      ? Math.round(
+          ((summary.peer_median_engagement - summary.hy_avg_engagement) /
+            summary.hy_avg_engagement) *
+            100,
+        )
+      : null;
+
+  const items = [
+    {
+      label: 'HY engagement / post',
+      value: isLoading ? '—' : n(summary?.hy_avg_engagement),
+      accent: colors.gold,
+    },
+    {
+      label: 'Whiskey peer median',
+      value: isLoading ? '—' : n(summary?.peer_median_engagement),
+      accent: colors.textPrimary,
+    },
+    {
+      label: 'Gap vs median',
+      value: gapPct === null ? '—' : `${gapPct > 0 ? '+' : ''}${gapPct}%`,
+      accent: gapPct && gapPct > 0 ? colors.error : colors.success,
+    },
+    {
+      label: 'Category leader',
+      value: summary?.category_leader_handle ? `@${summary.category_leader_handle}` : '—',
+      accent: colors.success,
+    },
+  ];
+
+  return (
+    <Box
+      sx={{
+        display: 'grid',
+        gridTemplateColumns: { xs: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' },
+        gap: 2,
+      }}
+    >
+      {items.map((it) => (
+        <Paper
+          key={it.label}
+          elevation={0}
+          sx={{
+            p: 2.25,
+            border: `1px solid ${colors.border}`,
+            borderRadius: 2,
+            transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
+            '&:hover': {
+              borderColor: '#d1d5db',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.04)',
+            },
+          }}
+        >
+          <Typography
+            sx={{
+              fontSize: 10.5,
+              fontWeight: 700,
+              color: colors.textMuted,
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase',
+              mb: 0.75,
+            }}
+          >
+            {it.label}
+          </Typography>
+          <Typography
+            sx={{
+              fontFamily: '"Playfair Display", Georgia, serif',
+              fontSize: { xs: 22, md: 26 },
+              fontWeight: 700,
+              color: it.accent,
+              lineHeight: 1.1,
+            }}
+          >
+            {it.value}
+          </Typography>
+        </Paper>
+      ))}
+    </Box>
+  );
+}
+
+// =================================================================
+// COMPETITOR LEADERBOARD
+// =================================================================
+function CompetitorLeaderboard() {
+  const { data, isLoading, error } = useCompetitorWatch('whiskey');
 
   return (
     <SectionCard>
       <SectionTitle
         eyebrow="Competitive landscape"
         title="HY vs The Field"
-        subtitle="Where HY sits in whiskey, cigar, and lifestyle peer sets."
+        subtitle="Whiskey peers ranked by engagement per post. HY row highlighted."
       />
       {isLoading ? (
-        <Skeleton variant="rectangular" height={88} sx={{ borderRadius: 1 }} />
-      ) : (
-        <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={2}>
-          <Box>
-            <Typography
-              sx={{
-                fontFamily: '"Playfair Display", Georgia, serif',
-                fontSize: { xs: 36, md: 44 },
-                fontWeight: 700,
-                color: colors.gold,
-                lineHeight: 1,
-              }}
-            >
-              {totalBrands}
-            </Typography>
-            <Typography sx={{ fontSize: 13, color: colors.textSecondary, mt: 0.75 }}>
-              competitor brands tracked across categories
-            </Typography>
+        <Skeleton variant="rectangular" height={400} sx={{ borderRadius: 1 }} />
+      ) : error ? (
+        <Alert severity="error">Failed: {error.message}</Alert>
+      ) : data ? (
+        <Box>
+          <Box sx={{ overflowX: 'auto' }}>
+            <Table size="small">
+              <TableHead>
+                <TableRow>
+                  <TableCell
+                    sx={{
+                      fontWeight: 700,
+                      fontSize: 11.5,
+                      letterSpacing: '0.06em',
+                      textTransform: 'uppercase',
+                      color: colors.textMuted,
+                    }}
+                  >
+                    Brand
+                  </TableCell>
+                  <TableCell
+                    align="right"
+                    sx={{
+                      fontWeight: 700,
+                      fontSize: 11.5,
+                      letterSpacing: '0.06em',
+                      textTransform: 'uppercase',
+                      color: colors.textMuted,
+                    }}
+                  >
+                    Followers
+                  </TableCell>
+                  <TableCell
+                    align="right"
+                    sx={{
+                      fontWeight: 700,
+                      fontSize: 11.5,
+                      letterSpacing: '0.06em',
+                      textTransform: 'uppercase',
+                      color: colors.textMuted,
+                    }}
+                  >
+                    Posts
+                  </TableCell>
+                  <TableCell
+                    align="right"
+                    sx={{
+                      fontWeight: 700,
+                      fontSize: 11.5,
+                      letterSpacing: '0.06em',
+                      textTransform: 'uppercase',
+                      color: colors.textMuted,
+                    }}
+                  >
+                    Eng / post
+                  </TableCell>
+                  <TableCell
+                    align="right"
+                    sx={{
+                      fontWeight: 700,
+                      fontSize: 11.5,
+                      letterSpacing: '0.06em',
+                      textTransform: 'uppercase',
+                      color: colors.textMuted,
+                    }}
+                  >
+                    Gap vs HY
+                  </TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {data.rows.map((r) => (
+                  <TableRow
+                    key={r.handle}
+                    sx={{
+                      bgcolor: r.is_hy ? `${colors.gold}15` : 'transparent',
+                      '&:hover': { bgcolor: r.is_hy ? `${colors.gold}25` : '#fafafa' },
+                    }}
+                  >
+                    <TableCell
+                      sx={{
+                        fontSize: 13.5,
+                        fontWeight: r.is_hy ? 700 : 500,
+                        color: colors.textPrimary,
+                      }}
+                    >
+                      @{r.handle}{' '}
+                      {r.is_hy ? (
+                        <Chip
+                          label="HY"
+                          size="small"
+                          sx={{
+                            ml: 1,
+                            height: 18,
+                            fontSize: 10,
+                            bgcolor: colors.gold,
+                            color: '#fff',
+                            fontWeight: 700,
+                          }}
+                        />
+                      ) : null}
+                    </TableCell>
+                    <TableCell align="right" sx={{ fontSize: 13, color: colors.textSecondary }}>
+                      {n(r.followers)}
+                    </TableCell>
+                    <TableCell align="right" sx={{ fontSize: 13, color: colors.textSecondary }}>
+                      {n(r.total_posts)}
+                    </TableCell>
+                    <TableCell
+                      align="right"
+                      sx={{ fontSize: 13, fontWeight: 600, color: colors.textPrimary }}
+                    >
+                      {n(r.avg_engagement_per_post)}
+                    </TableCell>
+                    <TableCell
+                      align="right"
+                      sx={{
+                        fontSize: 13,
+                        fontWeight: 700,
+                        color: r.is_hy
+                          ? colors.textMuted
+                          : (r.gap_vs_hy_pct ?? 0) > 0
+                            ? colors.error
+                            : colors.success,
+                      }}
+                    >
+                      {r.is_hy ? '—' : pct(r.gap_vs_hy_pct)}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </Box>
-          <RouterLink to="/marketing/competitors" style={{ textDecoration: 'none' }}>
-            <Box
-              sx={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 0.75,
-                px: 2.25,
-                py: 1.1,
-                borderRadius: '10px',
-                bgcolor: colors.gold,
-                color: '#fff',
-                fontSize: 13,
-                fontWeight: 700,
-                letterSpacing: '0.02em',
-                boxShadow: `0 4px 14px ${colors.gold}35`,
-                transition: 'all 0.2s ease',
-                cursor: 'pointer',
-                '&:hover': {
-                  bgcolor: colors.goldDark,
-                  transform: 'translateY(-1px)',
-                  boxShadow: `0 6px 18px ${colors.gold}50`,
-                },
-              }}
-            >
-              View landscape
-              <ArrowForwardIcon sx={{ fontSize: 17 }} />
-            </Box>
-          </RouterLink>
-        </Stack>
-      )}
+        </Box>
+      ) : null}
     </SectionCard>
   );
 }
@@ -836,8 +1072,8 @@ function FormatPerformance() {
                       r.category === 'whiskey'
                         ? colors.gold
                         : r.category === 'cigar'
-                        ? '#8b5cf6'
-                        : colors.chartTertiary
+                          ? '#8b5cf6'
+                          : colors.chartTertiary
                     }
                   />
                 ))}
@@ -868,13 +1104,30 @@ function AudienceSignals() {
       ) : data ? (
         <Stack direction="column" spacing={3}>
           <Box>
-            <Typography sx={{ fontSize: 11, fontWeight: 700, color: colors.textMuted, letterSpacing: '0.08em', textTransform: 'uppercase', mb: 1.5 }}>
+            <Typography
+              sx={{
+                fontSize: 11,
+                fontWeight: 700,
+                color: colors.textMuted,
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase',
+                mb: 1.5,
+              }}
+            >
               Best day to post by category
             </Typography>
             <Stack spacing={1}>
               {data.best_day_by_category.map((b) => (
                 <Box key={b.category} sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                  <Box sx={{ width: 80, fontSize: 13, fontWeight: 600, color: colors.textPrimary, textTransform: 'capitalize' }}>
+                  <Box
+                    sx={{
+                      width: 80,
+                      fontSize: 13,
+                      fontWeight: 600,
+                      color: colors.textPrimary,
+                      textTransform: 'capitalize',
+                    }}
+                  >
                     {b.category}
                   </Box>
                   <Box sx={{ flex: 1 }}>
@@ -897,17 +1150,39 @@ function AudienceSignals() {
             </Stack>
           </Box>
           <Box>
-            <Typography sx={{ fontSize: 11, fontWeight: 700, color: colors.textMuted, letterSpacing: '0.08em', textTransform: 'uppercase', mb: 1.5 }}>
+            <Typography
+              sx={{
+                fontSize: 11,
+                fontWeight: 700,
+                color: colors.textMuted,
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase',
+                mb: 1.5,
+              }}
+            >
               Post-type mix by category
             </Typography>
             <Box sx={{ width: '100%', height: 200 }}>
               <ResponsiveContainer>
-                <BarChart data={data.post_type_mix} stackOffset="expand" margin={{ left: 0, right: 16 }}>
+                <BarChart
+                  data={data.post_type_mix}
+                  stackOffset="expand"
+                  margin={{ left: 0, right: 16 }}
+                >
                   <CartesianGrid stroke={colors.borderLight} strokeDasharray="3 3" />
                   <XAxis dataKey="category" tick={{ fontSize: 11, fill: colors.textSecondary }} />
-                  <YAxis tickFormatter={(v) => `${Math.round(v * 100)}%`} tick={{ fontSize: 11, fill: colors.textMuted }} />
+                  <YAxis
+                    tickFormatter={(v) => `${Math.round(v * 100)}%`}
+                    tick={{ fontSize: 11, fill: colors.textMuted }}
+                  />
                   <Tooltip
-                    contentStyle={{ background: colors.tooltipBg, color: '#fff', border: 'none', fontSize: 12, borderRadius: 6 }}
+                    contentStyle={{
+                      background: colors.tooltipBg,
+                      color: '#fff',
+                      border: 'none',
+                      fontSize: 12,
+                      borderRadius: 6,
+                    }}
                   />
                   <Legend wrapperStyle={{ fontSize: 11 }} />
                   <Bar dataKey="reel" stackId="a" fill={colors.gold} />
@@ -962,9 +1237,12 @@ export function MarketingPage() {
           {/* Tier 1 — the headline: what HY should post next */}
           <HeroBrief />
 
-          {/* Tier 2 — supporting analysis. Two-column on desktop,
-              stacked on mobile. Pattern insights + audience signals,
-              plus a link to the dedicated competitor-landscape page. */}
+          {/* Tier 2 — quick-glance positioning numbers */}
+          <MarketingKpiStrip />
+
+          {/* Tier 3 — supporting analysis. Two-column grid on desktop,
+              stacked on mobile. Left column: the "why" (patterns + audience).
+              Right column: the "who" (leaderboard + format). */}
           <Box
             sx={{
               display: 'grid',
@@ -975,11 +1253,11 @@ export function MarketingPage() {
           >
             <Stack spacing={3}>
               <PatternInsights />
-              <FormatPerformance />
+              <AudienceSignals />
             </Stack>
             <Stack spacing={3}>
-              <AudienceSignals />
-              <CompetitorLandscapeLink />
+              <CompetitorLeaderboard />
+              <FormatPerformance />
             </Stack>
           </Box>
         </Stack>

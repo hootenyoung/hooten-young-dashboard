@@ -23,13 +23,7 @@ const CATEGORY_STYLE: Record<
   silent: { label: 'Silent', color: colors.textMuted, icon: TrendingFlatIcon },
 };
 
-const CATEGORY_ORDER: VelocityCategory[] = [
-  'accelerating',
-  'steady',
-  'declining',
-  'new',
-  'silent',
-];
+const CATEGORY_ORDER: VelocityCategory[] = ['accelerating', 'steady', 'declining', 'new', 'silent'];
 
 export function VelocityAnalysis() {
   const { data, isLoading, error } = useVelocityAnalysis();
@@ -49,7 +43,10 @@ export function VelocityAnalysis() {
   if (isLoading || !data) {
     return (
       <Paper elevation={0} sx={{ p: 3, border: `1px solid ${colors.border}`, borderRadius: 2 }}>
-        <Typography variant="h6" sx={{ fontFamily: '"Playfair Display", Georgia, serif', fontWeight: 600, mb: 2 }}>
+        <Typography
+          variant="h6"
+          sx={{ fontFamily: '"Playfair Display", Georgia, serif', fontWeight: 600, mb: 2 }}
+        >
           Velocity Analysis
         </Typography>
         <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
@@ -60,10 +57,7 @@ export function VelocityAnalysis() {
   }
 
   const statsMap = new Map<VelocityCategory, { count: number; total_9l: string }>(
-    data.category_stats.map((s) => [
-      s.category,
-      { count: s.count, total_9l: s.total_9l },
-    ]),
+    data.category_stats.map((s) => [s.category, { count: s.count, total_9l: s.total_9l }]),
   );
   const accountsByCategory = new Map<VelocityCategory, VelocityAccount[]>();
   for (const account of data.accounts) {
@@ -172,7 +166,15 @@ export function VelocityAnalysis() {
             No accounts in this category.
           </Typography>
         ) : (
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75, maxHeight: 380, overflowY: 'auto' }}>
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 0.75,
+              maxHeight: 380,
+              overflowY: 'auto',
+            }}
+          >
             {currentAccounts.slice(0, 50).map((acc) => (
               <Box
                 key={acc.account_id}

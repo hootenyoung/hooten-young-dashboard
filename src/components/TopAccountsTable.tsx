@@ -93,33 +93,83 @@ export function TopAccountsTable({ range, limit = 20 }: TopAccountsTableProps) {
           <Table size="small">
             <TableHead>
               <TableRow>
-                <TableCell sx={{ fontSize: 11, fontWeight: 700, color: colors.textMuted, letterSpacing: 1, textTransform: 'uppercase' }}>
+                <TableCell
+                  sx={{
+                    fontSize: 11,
+                    fontWeight: 700,
+                    color: colors.textMuted,
+                    letterSpacing: 1,
+                    textTransform: 'uppercase',
+                  }}
+                >
                   #
                 </TableCell>
-                <TableCell sx={{ fontSize: 11, fontWeight: 700, color: colors.textMuted, letterSpacing: 1, textTransform: 'uppercase' }}>
+                <TableCell
+                  sx={{
+                    fontSize: 11,
+                    fontWeight: 700,
+                    color: colors.textMuted,
+                    letterSpacing: 1,
+                    textTransform: 'uppercase',
+                  }}
+                >
                   Account
                 </TableCell>
-                <TableCell sx={{ fontSize: 11, fontWeight: 700, color: colors.textMuted, letterSpacing: 1, textTransform: 'uppercase' }}>
+                <TableCell
+                  sx={{
+                    fontSize: 11,
+                    fontWeight: 700,
+                    color: colors.textMuted,
+                    letterSpacing: 1,
+                    textTransform: 'uppercase',
+                  }}
+                >
                   Location
                 </TableCell>
-                <TableCell sx={{ fontSize: 11, fontWeight: 700, color: colors.textMuted, letterSpacing: 1, textTransform: 'uppercase' }}>
+                <TableCell
+                  sx={{
+                    fontSize: 11,
+                    fontWeight: 700,
+                    color: colors.textMuted,
+                    letterSpacing: 1,
+                    textTransform: 'uppercase',
+                  }}
+                >
                   Distributor
                 </TableCell>
                 <TableCell
                   align="right"
-                  sx={{ fontSize: 11, fontWeight: 700, color: colors.textMuted, letterSpacing: 1, textTransform: 'uppercase' }}
+                  sx={{
+                    fontSize: 11,
+                    fontWeight: 700,
+                    color: colors.textMuted,
+                    letterSpacing: 1,
+                    textTransform: 'uppercase',
+                  }}
                 >
                   9L Cases
                 </TableCell>
                 <TableCell
                   align="right"
-                  sx={{ fontSize: 11, fontWeight: 700, color: colors.textMuted, letterSpacing: 1, textTransform: 'uppercase' }}
+                  sx={{
+                    fontSize: 11,
+                    fontWeight: 700,
+                    color: colors.textMuted,
+                    letterSpacing: 1,
+                    textTransform: 'uppercase',
+                  }}
                 >
                   Products
                 </TableCell>
                 <TableCell
                   align="right"
-                  sx={{ fontSize: 11, fontWeight: 700, color: colors.textMuted, letterSpacing: 1, textTransform: 'uppercase' }}
+                  sx={{
+                    fontSize: 11,
+                    fontWeight: 700,
+                    color: colors.textMuted,
+                    letterSpacing: 1,
+                    textTransform: 'uppercase',
+                  }}
                 >
                   Last Active
                 </TableCell>
@@ -151,7 +201,10 @@ export function TopAccountsTable({ range, limit = 20 }: TopAccountsTableProps) {
                   <TableCell sx={{ fontSize: 13, color: colors.textSecondary }}>
                     {account.distributor_name ?? '—'}
                   </TableCell>
-                  <TableCell align="right" sx={{ fontSize: 13, fontWeight: 600, fontFeatureSettings: '"tnum"' }}>
+                  <TableCell
+                    align="right"
+                    sx={{ fontSize: 13, fontWeight: 600, fontFeatureSettings: '"tnum"' }}
+                  >
                     {numberFormatter.format(Number(account.cases_9l))}
                   </TableCell>
                   <TableCell align="right" sx={{ fontSize: 13, color: colors.textSecondary }}>

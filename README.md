@@ -26,15 +26,15 @@ Opens at http://localhost:5173. Requests to `/api/*` are proxied to `http://loca
 
 ## Scripts
 
-| Command              | What it does                                              |
-|----------------------|-----------------------------------------------------------|
-| `npm run dev`        | Vite dev server with HMR on :5173                         |
-| `npm run build`      | Type-check (`tsc -b`) then produce a production bundle    |
-| `npm run preview`    | Serve the built bundle for a smoke test                   |
-| `npm run lint`       | ESLint                                                    |
-| `npm run typecheck`  | TypeScript strict check (no emit)                         |
-| `npm run format`     | Prettier format in place                                  |
-| `npm run format:check` | Prettier check (CI)                                     |
+| Command                | What it does                                           |
+| ---------------------- | ------------------------------------------------------ |
+| `npm run dev`          | Vite dev server with HMR on :5173                      |
+| `npm run build`        | Type-check (`tsc -b`) then produce a production bundle |
+| `npm run preview`      | Serve the built bundle for a smoke test                |
+| `npm run lint`         | ESLint                                                 |
+| `npm run typecheck`    | TypeScript strict check (no emit)                      |
+| `npm run format`       | Prettier format in place                               |
+| `npm run format:check` | Prettier check (CI)                                    |
 
 ## Repo guide
 

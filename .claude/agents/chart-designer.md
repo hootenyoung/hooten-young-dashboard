@@ -38,7 +38,7 @@ The dashboard's job is to make weekly sales legible at a glance to HY leadership
 A chart lives at `src/components/charts/<ChartName>.jsx`:
 
 ```jsx
-import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend } from "recharts";
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend } from 'recharts';
 
 export function WeeklyRevenueByChannel({ data, height = 320 }) {
   return (

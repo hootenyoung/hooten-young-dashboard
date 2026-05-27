@@ -1,13 +1,6 @@
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
 import TuneOutlinedIcon from '@mui/icons-material/TuneOutlined';
-import {
-  Box,
-  Button,
-  CircularProgress,
-  Paper,
-  Slider,
-  Typography,
-} from '@mui/material';
+import { Box, Button, CircularProgress, Paper, Slider, Typography } from '@mui/material';
 import { useState } from 'react';
 import {
   useSalesByDistributor,
@@ -50,7 +43,10 @@ export function WhatIfSimulator({ range }: WhatIfSimulatorProps) {
   if (!productsQ.data || !statesQ.data || !distributorsQ.data) {
     return (
       <Paper elevation={0} sx={{ p: 3, border: `1px solid ${colors.border}`, borderRadius: 2 }}>
-        <Typography variant="h6" sx={{ fontFamily: '"Playfair Display", Georgia, serif', fontWeight: 600, mb: 2 }}>
+        <Typography
+          variant="h6"
+          sx={{ fontFamily: '"Playfair Display", Georgia, serif', fontWeight: 600, mb: 2 }}
+        >
           What-If Simulator
         </Typography>
         {isLoading ? (
@@ -73,12 +69,10 @@ export function WhatIfSimulator({ range }: WhatIfSimulatorProps) {
   );
   const distRevenues = knownDistributors.map((d) => Number(d.revenue));
   const avgDistRevenue =
-    distRevenues.length > 0
-      ? distRevenues.reduce((s, v) => s + v, 0) / distRevenues.length
-      : 0;
+    distRevenues.length > 0 ? distRevenues.reduce((s, v) => s + v, 0) / distRevenues.length : 0;
   const medianDistRevenue =
     distRevenues.length > 0
-      ? [...distRevenues].sort((a, b) => a - b)[Math.floor(distRevenues.length / 2)] ?? 0
+      ? ([...distRevenues].sort((a, b) => a - b)[Math.floor(distRevenues.length / 2)] ?? 0)
       : 0;
   // Use the lower of mean / median to be conservative.
   const newDistAvg = Math.min(avgDistRevenue, medianDistRevenue);
@@ -86,9 +80,7 @@ export function WhatIfSimulator({ range }: WhatIfSimulatorProps) {
   const knownStates = statesQ.data.states.filter((s) => s.state_code !== null);
   const stateRevenues = knownStates.map((s) => Number(s.revenue));
   const avgStateRevenue =
-    stateRevenues.length > 0
-      ? stateRevenues.reduce((s, v) => s + v, 0) / stateRevenues.length
-      : 0;
+    stateRevenues.length > 0 ? stateRevenues.reduce((s, v) => s + v, 0) / stateRevenues.length : 0;
   // For new states, assume 30% of average existing state revenue (per MVP heuristic).
   const newStateAvg = avgStateRevenue * 0.3;
 
@@ -243,9 +235,7 @@ export function WhatIfSimulator({ range }: WhatIfSimulatorProps) {
           </Typography>
 
           <Box sx={{ mt: 2, pt: 2, borderTop: `1px solid ${colors.borderLight}` }}>
-            <Typography sx={{ fontSize: 11, color: colors.textMuted, mb: 1 }}>
-              Breakdown
-            </Typography>
+            <Typography sx={{ fontSize: 11, color: colors.textMuted, mb: 1 }}>Breakdown</Typography>
             <DeltaRow label="Distributors" value={deltaDistributors} />
             <DeltaRow label="New states" value={deltaStates} />
             <DeltaRow label="Pricing lift" value={deltaPrice} />
@@ -281,7 +271,9 @@ interface LeverRowProps {
 function LeverRow({ label, description, value, max, unit, delta, onChange }: LeverRowProps) {
   return (
     <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', mb: 0.5 }}>
+      <Box
+        sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', mb: 0.5 }}
+      >
         <Typography sx={{ fontSize: 13, fontWeight: 600, color: colors.textPrimary }}>
           {label}
         </Typography>
@@ -295,19 +287,20 @@ function LeverRow({ label, description, value, max, unit, delta, onChange }: Lev
               fontFeatureSettings: '"tnum"',
             }}
           >
-            {value} <Box component="span" sx={{ fontSize: 12, color: colors.textMuted, fontWeight: 600 }}>{unit}</Box>
+            {value}{' '}
+            <Box component="span" sx={{ fontSize: 12, color: colors.textMuted, fontWeight: 600 }}>
+              {unit}
+            </Box>
           </Typography>
         </Box>
       </Box>
-      <Typography sx={{ fontSize: 11.5, color: colors.textMuted, mb: 1 }}>
-        {description}
-      </Typography>
+      <Typography sx={{ fontSize: 11.5, color: colors.textMuted, mb: 1 }}>{description}</Typography>
       <Slider
         value={value}
         min={0}
         max={max}
         step={1}
-        onChange={(_, v) => onChange(typeof v === 'number' ? v : v[0] ?? 0)}
+        onChange={(_, v) => onChange(typeof v === 'number' ? v : (v[0] ?? 0))}
         sx={{
           color: colors.chartPrimary,
           height: 4,

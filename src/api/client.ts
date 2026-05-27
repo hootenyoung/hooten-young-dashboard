@@ -52,11 +52,7 @@ function buildUrl(domain: ApiDomain, path: string, params?: QueryParams): string
   return qs ? `${url}?${qs}` : url;
 }
 
-export async function apiGet<T>(
-  domain: ApiDomain,
-  path: string,
-  params?: QueryParams,
-): Promise<T> {
+export async function apiGet<T>(domain: ApiDomain, path: string, params?: QueryParams): Promise<T> {
   const url = buildUrl(domain, path, params);
   const response = await fetch(url, {
     headers: { Accept: 'application/json' },

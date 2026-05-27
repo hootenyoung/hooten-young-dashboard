@@ -23,7 +23,7 @@ The dashboard's primary input is a weekly Excel sales report uploaded by HY. You
 A parser lives at `src/lib/xlsx/parse-<report-name>.js` (or `.ts` if/when migrated):
 
 ```js
-import * as XLSX from "xlsx";
+import * as XLSX from 'xlsx';
 
 /**
  * @typedef {object} WeeklySalesRow
@@ -42,7 +42,7 @@ import * as XLSX from "xlsx";
  * @property {string} sheetName
  */
 
-const REQUIRED_COLUMNS = ["Week Ending", "SKU", "Channel", "Region", "Units Sold", "Revenue"];
+const REQUIRED_COLUMNS = ['Week Ending', 'SKU', 'Channel', 'Region', 'Units Sold', 'Revenue'];
 
 /**
  * Parses a HY weekly sales workbook.
@@ -51,7 +51,7 @@ const REQUIRED_COLUMNS = ["Week Ending", "SKU", "Channel", "Region", "Units Sold
  * @throws {Error} if the workbook is missing the expected sheet or required columns.
  */
 export function parseWeeklySales(fileBuffer) {
-  const workbook = XLSX.read(fileBuffer, { type: "array", cellDates: true });
+  const workbook = XLSX.read(fileBuffer, { type: 'array', cellDates: true });
   // ...validate, extract, normalize
 }
 ```
