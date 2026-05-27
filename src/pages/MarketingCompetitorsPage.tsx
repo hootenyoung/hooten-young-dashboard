@@ -6,7 +6,6 @@ import {
   Container,
   Paper,
   Skeleton,
-  Stack,
   Tab,
   Table,
   TableBody,
@@ -154,42 +153,6 @@ export function MarketingCompetitorsPage() {
             </Alert>
           ) : data ? (
             <>
-              {/* Summary strip */}
-              {data.summary.hy_avg_engagement ? (
-                <Stack
-                  direction="row"
-                  spacing={3}
-                  sx={{
-                    px: 3,
-                    py: 2.5,
-                    bgcolor: '#fefcf6',
-                    borderBottom: `1px solid ${colors.border}`,
-                    flexWrap: 'wrap',
-                    gap: 1,
-                  }}
-                >
-                  <SummaryStat
-                    label="Brands tracked"
-                    value={n(data.rows.length)}
-                    accent={colors.textPrimary}
-                  />
-                  <SummaryStat
-                    label="Peer median engagement"
-                    value={n(data.summary.peer_median_engagement)}
-                    accent={colors.textPrimary}
-                  />
-                  <SummaryStat
-                    label="Category leader"
-                    value={
-                      data.summary.category_leader_handle
-                        ? `@${data.summary.category_leader_handle}`
-                        : '—'
-                    }
-                    accent={colors.success}
-                  />
-                </Stack>
-              ) : null}
-
               {/* Table */}
               <Box sx={{ overflowX: 'auto' }}>
                 <Table size="small">
@@ -295,6 +258,7 @@ const th = {
   color: colors.textMuted,
 };
 
+<<<<<<< HEAD
 function SummaryStat({ label, value, accent }: { label: string; value: string; accent: string }) {
   return (
     <Box>
@@ -324,3 +288,5 @@ function SummaryStat({ label, value, accent }: { label: string; value: string; a
     </Box>
   );
 }
+=======
+>>>>>>> edf3940 (ui(marketing): drop summary KPI strip from competitive landscape)
