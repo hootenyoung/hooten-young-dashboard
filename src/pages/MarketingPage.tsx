@@ -622,7 +622,6 @@ function HeroBrief() {
                       letterSpacing: '0.02em',
                     }}
                   >
-                    ${m.cost_usd.toFixed(2)} · {m.duration_s.toFixed(0)}s ·{' '}
                     {new Date(m.generated_at).toLocaleTimeString([], {
                       hour: 'numeric',
                       minute: '2-digit',
