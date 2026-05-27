@@ -16,10 +16,16 @@ import {
   Typography,
 } from '@mui/material';
 import { motion } from 'framer-motion';
-import { useState } from 'react';
+import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
+import ArrowDropUpIcon from '@mui/icons-material/ArrowDropUp';
+import { useMemo, useState } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
 import { Header } from '../components/Header';
-import { type CompetitorCategory, useCompetitorWatch } from '../api/marketing';
+import {
+  type CompetitorCategory,
+  type CompetitorRow,
+  useCompetitorWatch,
+} from '../api/marketing';
 import { colors } from '../theme';
 
 const MotionBox = motion.create(Box);
@@ -44,9 +50,44 @@ function pct(v: number | null | undefined): string {
  *
  * Reached from the "View landscape" button on /marketing.
  */
+type SortKey = 'avg_engagement_per_post' | 'followers' | 'total_posts' | 'followers_growth_pct';
+type SortDir = 'desc' | 'asc';
+
+/** Sort rows by the chosen column. HY is NOT pinned — its position in the
+ *  leaderboard is the actual answer the marketing team wants ('where do
+ *  we rank?'). HY row stays highlighted in gold so it's findable. Nulls
+ *  sort to the bottom in either direction. */
+function sortRows(rows: CompetitorRow[], key: SortKey, dir: SortDir): CompetitorRow[] {
+  return [...rows].sort((a, b) => {
+    const av = a[key];
+    const bv = b[key];
+    if (av === null || av === undefined) return 1;
+    if (bv === null || bv === undefined) return -1;
+    return dir === 'desc' ? Number(bv) - Number(av) : Number(av) - Number(bv);
+  });
+}
+
 export function MarketingCompetitorsPage() {
   const [category, setCategory] = useState<CompetitorCategory>('whiskey');
+  const [sortKey, setSortKey] = useState<SortKey>('avg_engagement_per_post');
+  const [sortDir, setSortDir] = useState<SortDir>('desc');
   const { data, isLoading, error } = useCompetitorWatch(category);
+
+  const sortedRows = useMemo(() => {
+    if (!data?.rows) return [];
+    return sortRows(data.rows, sortKey, sortDir);
+  }, [data?.rows, sortKey, sortDir]);
+
+  // Toggle: clicking the active column flips direction; clicking another
+  // column switches to it (default desc — bigger = better for these metrics).
+  const onSort = (key: SortKey) => {
+    if (key === sortKey) {
+      setSortDir((d) => (d === 'desc' ? 'asc' : 'desc'));
+    } else {
+      setSortKey(key);
+      setSortDir('desc');
+    }
+  };
 
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: colors.pageBg }}>
@@ -158,24 +199,43 @@ export function MarketingCompetitorsPage() {
                 <Table size="small">
                   <TableHead>
                     <TableRow>
+                      <TableCell align="right" sx={{ ...th, width: 50 }}>
+                        Rank
+                      </TableCell>
                       <TableCell sx={th}>Brand</TableCell>
                       <TableCell sx={th}>Category</TableCell>
-                      <TableCell align="right" sx={th}>
-                        Followers
-                      </TableCell>
-                      <TableCell align="right" sx={th}>
-                        Posts
-                      </TableCell>
-                      <TableCell align="right" sx={th}>
-                        Eng / post
-                      </TableCell>
-                      <TableCell align="right" sx={th}>
-                        Follower growth
-                      </TableCell>
+                      <SortableHeader
+                        label="Followers"
+                        sortKey="followers"
+                        active={sortKey}
+                        dir={sortDir}
+                        onSort={onSort}
+                      />
+                      <SortableHeader
+                        label="Posts"
+                        sortKey="total_posts"
+                        active={sortKey}
+                        dir={sortDir}
+                        onSort={onSort}
+                      />
+                      <SortableHeader
+                        label="Eng / post"
+                        sortKey="avg_engagement_per_post"
+                        active={sortKey}
+                        dir={sortDir}
+                        onSort={onSort}
+                      />
+                      <SortableHeader
+                        label="Follower growth"
+                        sortKey="followers_growth_pct"
+                        active={sortKey}
+                        dir={sortDir}
+                        onSort={onSort}
+                      />
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {data.rows.map((r) => (
+                    {sortedRows.map((r, i) => (
                       <TableRow
                         key={r.handle}
                         sx={{
@@ -183,6 +243,17 @@ export function MarketingCompetitorsPage() {
                           '&:hover': { bgcolor: r.is_hy ? `${colors.gold}25` : '#fafafa' },
                         }}
                       >
+                        <TableCell
+                          align="right"
+                          sx={{
+                            fontSize: 12,
+                            fontWeight: 700,
+                            color: r.is_hy ? colors.gold : colors.textMuted,
+                            fontVariantNumeric: 'tabular-nums',
+                          }}
+                        >
+                          {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`}
+                        </TableCell>
                         <TableCell
                           sx={{
                             fontSize: 13.5,
@@ -257,4 +328,49 @@ const th = {
   textTransform: 'uppercase' as const,
   color: colors.textMuted,
 };
+
+/** Clickable column header. Shows an up/down arrow when the column is the
+ *  active sort target; otherwise renders inert text. Numeric-aligned. */
+function SortableHeader({
+  label,
+  sortKey,
+  active,
+  dir,
+  onSort,
+}: {
+  label: string;
+  sortKey: SortKey;
+  active: SortKey;
+  dir: SortDir;
+  onSort: (k: SortKey) => void;
+}) {
+  const isActive = sortKey === active;
+  return (
+    <TableCell
+      align="right"
+      onClick={() => onSort(sortKey)}
+      sx={{
+        ...th,
+        cursor: 'pointer',
+        userSelect: 'none',
+        color: isActive ? colors.goldDark : colors.textMuted,
+        '&:hover': { color: colors.goldDark },
+      }}
+    >
+      <Box
+        component="span"
+        sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.25 }}
+      >
+        {label}
+        {isActive ? (
+          dir === 'desc' ? (
+            <ArrowDropDownIcon sx={{ fontSize: 18, mr: -0.5 }} />
+          ) : (
+            <ArrowDropUpIcon sx={{ fontSize: 18, mr: -0.5 }} />
+          )
+        ) : null}
+      </Box>
+    </TableCell>
+  );
+}
 
