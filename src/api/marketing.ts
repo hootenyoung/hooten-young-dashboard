@@ -291,6 +291,9 @@ export interface GenerateImageRequest {
   use_brand_reference?: boolean;
   /** Or explicitly pass a public URL of a reference image. */
   reference_image_url?: string;
+  /** Brief's category — drives which HY product photo (whiskey bottle vs
+   *  cigar product). Lifestyle skips the anchor entirely. */
+  category?: 'whiskey' | 'cigar' | 'lifestyle';
 }
 
 export interface GenerateVideoRequest {
