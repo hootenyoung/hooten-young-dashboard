@@ -204,7 +204,6 @@ export function MarketingCompetitorsPage() {
                       <TableCell align="right" sx={th}>Posts</TableCell>
                       <TableCell align="right" sx={th}>Eng / post</TableCell>
                       <TableCell align="right" sx={th}>Follower growth</TableCell>
-                      <TableCell align="right" sx={th}>Gap vs HY</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
@@ -271,20 +270,6 @@ export function MarketingCompetitorsPage() {
                           }}
                         >
                           {pct(r.followers_growth_pct)}
-                        </TableCell>
-                        <TableCell
-                          align="right"
-                          sx={{
-                            fontSize: 13,
-                            fontWeight: 700,
-                            color: r.is_hy
-                              ? colors.textMuted
-                              : (r.gap_vs_hy_pct ?? 0) > 0
-                              ? colors.error
-                              : colors.success,
-                          }}
-                        >
-                          {r.is_hy ? '—' : pct(r.gap_vs_hy_pct)}
                         </TableCell>
                       </TableRow>
                     ))}
