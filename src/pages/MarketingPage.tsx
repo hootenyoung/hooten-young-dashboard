@@ -393,19 +393,24 @@ function HeroBrief() {
               )
             }
             onClick={async () => {
-              if (!rec.visual_direction) return;
+              // Prefer the image-specific prompt when present (single hero
+              // shot framing) — the video prompt has a BEAT 1/2/3/4 structure
+              // that Flux interprets as a 4-panel collage. Fall back to
+              // visual_direction for backwards compatibility.
+              const imagePrompt = rec.image_visual_direction || rec.visual_direction;
+              if (!imagePrompt) return;
               // Infer category from brief text so the backend picks a
               // category-appropriate HY product photo (whiskey bottle vs
               // cigar product). Default to whiskey — HY is primarily a
               // whiskey brand.
-              const briefText = `${rec.theme ?? ''} ${rec.visual_direction ?? ''}`.toLowerCase();
+              const briefText = `${rec.theme ?? ''} ${imagePrompt}`.toLowerCase();
               const category: 'whiskey' | 'cigar' | 'lifestyle' = briefText.includes('cigar')
                 ? 'cigar'
                 : briefText.match(/yeti|huckberry|tecovas|filson|outdoor|lifestyle/)
                 ? 'lifestyle'
                 : 'whiskey';
               const result = await generateImage.mutateAsync({
-                visual_direction: rec.visual_direction,
+                visual_direction: imagePrompt,
                 aspect_ratio: '1:1',
                 use_brand_reference: true,
                 category,

@@ -214,7 +214,11 @@ export interface ContentBrief {
   theme?: string;
   caption_draft?: string;
   hashtags?: string[];
+  /** Video prompt — sequential BEAT structure, used by Generate Reel. */
   visual_direction?: string;
+  /** Image prompt — single hero shot, used by Generate Image. Falls back
+   *  to visual_direction when not present. */
+  image_visual_direction?: string;
   reasoning?: unknown;
   compliance_notes?: unknown;
   next_publish_date?: string;
