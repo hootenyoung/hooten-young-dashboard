@@ -258,35 +258,3 @@ const th = {
   color: colors.textMuted,
 };
 
-<<<<<<< HEAD
-function SummaryStat({ label, value, accent }: { label: string; value: string; accent: string }) {
-  return (
-    <Box>
-      <Typography
-        sx={{
-          fontSize: 10.5,
-          fontWeight: 700,
-          color: colors.textMuted,
-          letterSpacing: '0.08em',
-          textTransform: 'uppercase',
-        }}
-      >
-        {label}
-      </Typography>
-      <Typography
-        sx={{
-          fontFamily: '"Playfair Display", Georgia, serif',
-          fontSize: { xs: 20, md: 24 },
-          fontWeight: 700,
-          color: accent,
-          lineHeight: 1.1,
-          mt: 0.25,
-        }}
-      >
-        {value}
-      </Typography>
-    </Box>
-  );
-}
-=======
->>>>>>> edf3940 (ui(marketing): drop summary KPI strip from competitive landscape)
