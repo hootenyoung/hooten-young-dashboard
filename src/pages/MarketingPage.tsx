@@ -17,11 +17,6 @@ import {
   Paper,
   Skeleton,
   Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
   Typography,
 } from '@mui/material';
 import { useQueryClient } from '@tanstack/react-query';
@@ -60,10 +55,6 @@ const numberFormatter = new Intl.NumberFormat('en-US');
 function n(value: number | null | undefined): string {
   if (value === null || value === undefined) return '—';
   return numberFormatter.format(Math.round(Number(value)));
-}
-function pct(value: number | null | undefined): string {
-  if (value === null || value === undefined) return '—';
-  return `${value > 0 ? '+' : ''}${Number(value).toFixed(1)}%`;
 }
 
 // =================================================================
@@ -749,163 +740,71 @@ function PatternInsights() {
 }
 
 // =================================================================
-// KPI STRIP — the headline numbers from competitor-watch summary,
-// promoted to a top-of-page row so HY sees positioning at a glance.
+// COMPETITOR LANDSCAPE LINK — compact summary tile that navigates
+// to the dedicated /marketing/competitors page (tabs for whiskey,
+// cigar, lifestyle).
 // =================================================================
-function MarketingKpiStrip() {
-  const { data, isLoading } = useCompetitorWatch('whiskey');
-  const summary = data?.summary;
-
-  const gapPct =
-    summary?.hy_avg_engagement && summary?.peer_median_engagement
-      ? Math.round(
-          ((summary.peer_median_engagement - summary.hy_avg_engagement) /
-            summary.hy_avg_engagement) *
-            100,
-        )
-      : null;
-
-  const items = [
-    {
-      label: 'HY engagement / post',
-      value: isLoading ? '—' : n(summary?.hy_avg_engagement),
-      accent: colors.gold,
-    },
-    {
-      label: 'Whiskey peer median',
-      value: isLoading ? '—' : n(summary?.peer_median_engagement),
-      accent: colors.textPrimary,
-    },
-    {
-      label: 'Gap vs median',
-      value: gapPct === null ? '—' : `${gapPct > 0 ? '+' : ''}${gapPct}%`,
-      accent: gapPct && gapPct > 0 ? colors.error : colors.success,
-    },
-    {
-      label: 'Category leader',
-      value: summary?.category_leader_handle ? `@${summary.category_leader_handle}` : '—',
-      accent: colors.success,
-    },
-  ];
-
-  return (
-    <Box
-      sx={{
-        display: 'grid',
-        gridTemplateColumns: { xs: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' },
-        gap: 2,
-      }}
-    >
-      {items.map((it) => (
-        <Paper
-          key={it.label}
-          elevation={0}
-          sx={{
-            p: 2.25,
-            border: `1px solid ${colors.border}`,
-            borderRadius: 2,
-            transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
-            '&:hover': {
-              borderColor: '#d1d5db',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.04)',
-            },
-          }}
-        >
-          <Typography
-            sx={{
-              fontSize: 10.5,
-              fontWeight: 700,
-              color: colors.textMuted,
-              letterSpacing: '0.08em',
-              textTransform: 'uppercase',
-              mb: 0.75,
-            }}
-          >
-            {it.label}
-          </Typography>
-          <Typography
-            sx={{
-              fontFamily: '"Playfair Display", Georgia, serif',
-              fontSize: { xs: 22, md: 26 },
-              fontWeight: 700,
-              color: it.accent,
-              lineHeight: 1.1,
-            }}
-          >
-            {it.value}
-          </Typography>
-        </Paper>
-      ))}
-    </Box>
-  );
-}
-
-// =================================================================
-// COMPETITOR LEADERBOARD
-// =================================================================
-function CompetitorLeaderboard() {
-  const { data, isLoading, error } = useCompetitorWatch('whiskey');
+function CompetitorLandscapeLink() {
+  const { data, isLoading } = useCompetitorWatch('all');
+  const totalBrands = data?.rows.length ?? 0;
 
   return (
     <SectionCard>
       <SectionTitle
         eyebrow="Competitive landscape"
         title="HY vs The Field"
-        subtitle="Whiskey peers ranked by engagement per post. HY row highlighted."
+        subtitle="Where HY sits in whiskey, cigar, and lifestyle peer sets."
       />
       {isLoading ? (
-        <Skeleton variant="rectangular" height={400} sx={{ borderRadius: 1 }} />
-      ) : error ? (
-        <Alert severity="error">Failed: {error.message}</Alert>
-      ) : data ? (
-        <Box>
-          <Box sx={{ overflowX: 'auto' }}>
-            <Table size="small">
-              <TableHead>
-                <TableRow>
-                  <TableCell sx={{ fontWeight: 700, fontSize: 11.5, letterSpacing: '0.06em', textTransform: 'uppercase', color: colors.textMuted }}>Brand</TableCell>
-                  <TableCell align="right" sx={{ fontWeight: 700, fontSize: 11.5, letterSpacing: '0.06em', textTransform: 'uppercase', color: colors.textMuted }}>Followers</TableCell>
-                  <TableCell align="right" sx={{ fontWeight: 700, fontSize: 11.5, letterSpacing: '0.06em', textTransform: 'uppercase', color: colors.textMuted }}>Posts</TableCell>
-                  <TableCell align="right" sx={{ fontWeight: 700, fontSize: 11.5, letterSpacing: '0.06em', textTransform: 'uppercase', color: colors.textMuted }}>Eng / post</TableCell>
-                  <TableCell align="right" sx={{ fontWeight: 700, fontSize: 11.5, letterSpacing: '0.06em', textTransform: 'uppercase', color: colors.textMuted }}>Gap vs HY</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {data.rows.map((r) => (
-                  <TableRow
-                    key={r.handle}
-                    sx={{
-                      bgcolor: r.is_hy ? `${colors.gold}15` : 'transparent',
-                      '&:hover': { bgcolor: r.is_hy ? `${colors.gold}25` : '#fafafa' },
-                    }}
-                  >
-                    <TableCell sx={{ fontSize: 13.5, fontWeight: r.is_hy ? 700 : 500, color: colors.textPrimary }}>
-                      @{r.handle} {r.is_hy ? <Chip label="HY" size="small" sx={{ ml: 1, height: 18, fontSize: 10, bgcolor: colors.gold, color: '#fff', fontWeight: 700 }} /> : null}
-                    </TableCell>
-                    <TableCell align="right" sx={{ fontSize: 13, color: colors.textSecondary }}>{n(r.followers)}</TableCell>
-                    <TableCell align="right" sx={{ fontSize: 13, color: colors.textSecondary }}>{n(r.total_posts)}</TableCell>
-                    <TableCell align="right" sx={{ fontSize: 13, fontWeight: 600, color: colors.textPrimary }}>{n(r.avg_engagement_per_post)}</TableCell>
-                    <TableCell
-                      align="right"
-                      sx={{
-                        fontSize: 13,
-                        fontWeight: 700,
-                        color: r.is_hy
-                          ? colors.textMuted
-                          : (r.gap_vs_hy_pct ?? 0) > 0
-                          ? colors.error
-                          : colors.success,
-                      }}
-                    >
-                      {r.is_hy ? '—' : pct(r.gap_vs_hy_pct)}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+        <Skeleton variant="rectangular" height={88} sx={{ borderRadius: 1 }} />
+      ) : (
+        <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={2}>
+          <Box>
+            <Typography
+              sx={{
+                fontFamily: '"Playfair Display", Georgia, serif',
+                fontSize: { xs: 36, md: 44 },
+                fontWeight: 700,
+                color: colors.gold,
+                lineHeight: 1,
+              }}
+            >
+              {totalBrands}
+            </Typography>
+            <Typography sx={{ fontSize: 13, color: colors.textSecondary, mt: 0.75 }}>
+              competitor brands tracked across categories
+            </Typography>
           </Box>
-        </Box>
-      ) : null}
+          <RouterLink to="/marketing/competitors" style={{ textDecoration: 'none' }}>
+            <Box
+              sx={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 0.75,
+                px: 2.25,
+                py: 1.1,
+                borderRadius: '10px',
+                bgcolor: colors.gold,
+                color: '#fff',
+                fontSize: 13,
+                fontWeight: 700,
+                letterSpacing: '0.02em',
+                boxShadow: `0 4px 14px ${colors.gold}35`,
+                transition: 'all 0.2s ease',
+                cursor: 'pointer',
+                '&:hover': {
+                  bgcolor: colors.goldDark,
+                  transform: 'translateY(-1px)',
+                  boxShadow: `0 6px 18px ${colors.gold}50`,
+                },
+              }}
+            >
+              View landscape
+              <ArrowForwardIcon sx={{ fontSize: 17 }} />
+            </Box>
+          </RouterLink>
+        </Stack>
+      )}
     </SectionCard>
   );
 }
@@ -1084,12 +983,9 @@ export function MarketingPage() {
           {/* Tier 1 — the headline: what HY should post next */}
           <HeroBrief />
 
-          {/* Tier 2 — quick-glance positioning numbers */}
-          <MarketingKpiStrip />
-
-          {/* Tier 3 — supporting analysis. Two-column grid on desktop,
-              stacked on mobile. Left column: the "why" (patterns + audience).
-              Right column: the "who" (leaderboard + format). */}
+          {/* Tier 2 — supporting analysis. Two-column on desktop,
+              stacked on mobile. Pattern insights + audience signals,
+              plus a link to the dedicated competitor-landscape page. */}
           <Box
             sx={{
               display: 'grid',
@@ -1100,11 +996,11 @@ export function MarketingPage() {
           >
             <Stack spacing={3}>
               <PatternInsights />
-              <AudienceSignals />
+              <FormatPerformance />
             </Stack>
             <Stack spacing={3}>
-              <CompetitorLeaderboard />
-              <FormatPerformance />
+              <AudienceSignals />
+              <CompetitorLandscapeLink />
             </Stack>
           </Box>
         </Stack>

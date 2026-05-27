@@ -41,7 +41,7 @@ export interface CompetitorWatchResponse {
   summary: CompetitorWatchSummary;
 }
 
-export type CompetitorCategory = 'whiskey' | 'cigar' | 'all';
+export type CompetitorCategory = 'whiskey' | 'cigar' | 'lifestyle' | 'all';
 
 export function useCompetitorWatch(
   category: CompetitorCategory = 'all',
