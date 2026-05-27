@@ -21,7 +21,7 @@ import {
 } from '@mui/material';
 import { useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
 import {
   Bar,
@@ -45,6 +45,7 @@ import {
   useGenerateImage,
   useGenerateVideo,
   useLatestBrief,
+  useMediaHistory,
   usePatterns,
 } from '../api/marketing';
 import { colors } from '../theme';
@@ -118,65 +119,28 @@ function HeroBrief() {
   const generate = useGenerateBrief();
   const generateImage = useGenerateImage();
   const generateVideo = useGenerateVideo();
-  // List of generated assets, newest first. Each click appends — nothing
-  // is replaced, so the team can compare image + reel side by side.
-  //
-  // Persisted to localStorage so navigating away (e.g. to /marketing/patterns)
-  // and back doesn't blow them away. Capped to the last 24 to keep storage
-  // sane; older results scroll off. Tied to the current brief's timestamp so
-  // a fresh brief gives the team a clean slate.
-  const briefStamp = data?.recommendation?._generated_at ?? '';
-  const storageKey = briefStamp
-    ? `hy-marketing-media:${briefStamp}`
-    : 'hy-marketing-media:current';
-
-  const [generatedMedia, setGeneratedMedia] = useState<MediaResponse[]>(() => {
-    try {
-      const raw = localStorage.getItem(storageKey);
-      return raw ? (JSON.parse(raw) as MediaResponse[]) : [];
-    } catch {
-      return [];
+  // Generated-asset gallery — fetched from the server's /media/history.
+  // Local dismissals are an in-memory "hidden ids" filter; we don't have a
+  // DELETE endpoint yet, so dismiss only hides for this page-view.
+  const history = useMediaHistory();
+  const [hiddenIds, setHiddenIds] = useState<Set<number>>(new Set());
+  const generatedMedia: MediaResponse[] = (history.data?.assets ?? []).filter(
+    (a) => a.id === undefined || !hiddenIds.has(a.id),
+  );
+  const removeMedia = (idx: number) => {
+    const target = generatedMedia[idx];
+    if (target?.id !== undefined) {
+      setHiddenIds((prev) => new Set(prev).add(target.id!));
     }
-  });
-
-  useEffect(() => {
-    try {
-      if (generatedMedia.length === 0) {
-        localStorage.removeItem(storageKey);
-      } else {
-        localStorage.setItem(storageKey, JSON.stringify(generatedMedia.slice(0, 24)));
-      }
-    } catch {
-      // Quota exceeded or storage disabled — silently ignore; in-memory state still works.
-    }
-  }, [storageKey, generatedMedia]);
-
-  // When a new brief is generated, drop stale entries tied to old briefs.
-  useEffect(() => {
-    if (!briefStamp) return;
-    try {
-      for (let i = localStorage.length - 1; i >= 0; i--) {
-        const key = localStorage.key(i);
-        if (
-          key &&
-          key.startsWith('hy-marketing-media:') &&
-          key !== storageKey &&
-          key !== 'hy-marketing-media:current'
-        ) {
-          localStorage.removeItem(key);
-        }
-      }
-    } catch {
-      // ignore
-    }
-  }, [briefStamp, storageKey]);
-
-  const removeMedia = (idx: number) =>
-    setGeneratedMedia((prev) => prev.filter((_, i) => i !== idx));
+  };
 
   const handleGenerate = async () => {
     await generate.mutateAsync();
-    setGeneratedMedia([]); // a fresh brief invalidates the old visuals
+    // The new brief replaces the old; hide any current assets so the gallery
+    // restarts for the new recommendation.
+    setHiddenIds(
+      new Set((history.data?.assets ?? []).map((a) => a.id).filter((id): id is number => id !== undefined)),
+    );
     queryClient.invalidateQueries({ queryKey: ['marketing', 'briefs', 'latest'] });
     queryClient.invalidateQueries({ queryKey: ['marketing', 'patterns'] });
   };
@@ -379,7 +343,10 @@ function HeroBrief() {
               aspect_ratio: '1:1',
               use_brand_reference: true,  // Always anchor to HY's real bottle.
             });
-            setGeneratedMedia((prev) => [result, ...prev]);
+            // result.id is server-assigned; the next history refetch will
+            // include it naturally. Force a refetch so it shows immediately.
+            void result;
+            queryClient.invalidateQueries({ queryKey: ['marketing', 'media-history'] });
           }}
           disabled={generateImage.isPending || generateVideo.isPending || !rec.visual_direction}
           sx={{
@@ -404,7 +371,10 @@ function HeroBrief() {
               aspect_ratio: '9:16',
               duration_sec: 6,
             });
-            setGeneratedMedia((prev) => [result, ...prev]);
+            // result.id is server-assigned; the next history refetch will
+            // include it naturally. Force a refetch so it shows immediately.
+            void result;
+            queryClient.invalidateQueries({ queryKey: ['marketing', 'media-history'] });
           }}
           disabled={generateVideo.isPending || generateImage.isPending || !rec.visual_direction}
           sx={{
@@ -458,7 +428,16 @@ function HeroBrief() {
             {generatedMedia.length > 1 ? (
               <Button
                 size="small"
-                onClick={() => setGeneratedMedia([])}
+                onClick={() => {
+                  // "Clear all" — hide every currently-shown server asset.
+                  setHiddenIds(
+                    new Set(
+                      generatedMedia
+                        .map((a) => a.id)
+                        .filter((id): id is number => id !== undefined),
+                    ),
+                  );
+                }}
                 sx={{
                   fontSize: 11,
                   color: colors.textMuted,

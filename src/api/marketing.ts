@@ -273,6 +273,8 @@ export function useGenerateBrief() {
 // -------------------- Media generation (image + video) --------------------
 
 export interface MediaResponse {
+  /** Server-assigned id once the asset is persisted to Postgres. */
+  id?: number;
   kind: 'image' | 'video';
   url: string;
   provider: string;
@@ -335,4 +337,19 @@ export function useGenerateVideo() {
 export function resolveMediaUrl(url: string): string {
   if (url.startsWith('http')) return url;
   return `${MARKETING_BASE()}${url}`;
+}
+
+// -------------------- Media history (server-persisted gallery) --------------------
+
+export interface MediaHistoryResponse {
+  count: number;
+  assets: MediaResponse[];
+}
+
+export function useMediaHistory(): UseQueryResult<MediaHistoryResponse> {
+  return useQuery({
+    queryKey: ['marketing', 'media-history'],
+    queryFn: () =>
+      apiGet<MediaHistoryResponse>('marketing', '/api/marketing/media/history', { limit: 24 }),
+  });
 }
